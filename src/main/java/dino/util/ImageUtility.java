@@ -14,8 +14,8 @@ public class ImageUtility {
         return isGrayPixel(i, 0);
     }
 
-    public boolean isGrayPixel(int xAxis, int yAxisBottomUp) {
-        int rgb = image.getRGB(xAxis, yAxisBottomUp);
+    public boolean isGrayPixel(int xAxis, int yAxix) {
+        int rgb = image.getRGB(xAxis, yAxix);
 
         // Extract Red, Green, and Blue components from the RGB value
         int red = (rgb >> 16) & 0xFF;

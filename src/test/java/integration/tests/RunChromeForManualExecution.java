@@ -13,7 +13,7 @@ public class RunChromeForManualExecution {
         WebDriverManager.chromedriver().setup();
         WebDriver webDriver = new ChromeDriver();
         webDriver.get("data:text/html,<html></html>");
-        Thread.sleep(2000);
+        Thread.sleep(5000);
         new SeleniumRobot().openDinoGameUsingRobotKeys();
         webDriver.manage().window().setSize(new Dimension(500, 450));
         new SeleniumDino(webDriver).run();

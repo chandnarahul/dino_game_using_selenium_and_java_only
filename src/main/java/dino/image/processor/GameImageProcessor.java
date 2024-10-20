@@ -4,13 +4,16 @@ import dino.image.processor.exception.GameOverException;
 import dino.image.processor.object.ObstacleAction;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
 import java.util.Arrays;
 import java.util.List;
 
+import static dino.util.Constants.MAX_COMMON_IMAGES;
+
 public class GameImageProcessor {
 
-    public static final int MAX_COMMON_IMAGES = 5;
     private final GameCanvas gameCanvas;
     private final List<GameCanvas> imageBuffers;
 
@@ -35,11 +38,31 @@ public class GameImageProcessor {
 
     private boolean ifUniqueImage() {
         for (GameCanvas previous : imageBuffers) {
-            DataBufferByte dataBufferByte = previous.imageDataBuffer();
-            if (dataBufferByte.getNumBanks() > 0) {
-                return !Arrays.equals(gameCanvas.imageDataBuffer().getData(0), dataBufferByte.getData(0));
+            DataBuffer dataBuffer = previous.imageDataBuffer();
+            if (dataBuffer.getNumBanks() > 0) {
+                return !areDataBuffersEqual(gameCanvas.imageDataBuffer(), dataBuffer);
             }
         }
         return Boolean.TRUE;
+    }
+
+    public static boolean areDataBuffersEqual(DataBuffer buffer1, DataBuffer buffer2) {
+        if (buffer1 == buffer2) return true;
+        if (buffer1 == null || buffer2 == null) return false;
+        if (buffer1.getClass() != buffer2.getClass()) return false;
+        if (buffer1.getSize() != buffer2.getSize()) return false;
+
+        if (buffer1 instanceof DataBufferByte) {
+            return Arrays.equals(((DataBufferByte) buffer1).getData(), ((DataBufferByte) buffer2).getData());
+        } else if (buffer1 instanceof DataBufferInt) {
+            return Arrays.equals(((DataBufferInt) buffer1).getData(), ((DataBufferInt) buffer2).getData());
+        } else {
+            for (int i = 0; i < buffer1.getSize(); i++) {
+                if (buffer1.getElem(i) != buffer2.getElem(i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

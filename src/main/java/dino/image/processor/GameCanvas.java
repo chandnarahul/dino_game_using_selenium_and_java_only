@@ -1,87 +1,73 @@
 package dino.image.processor;
 
 import dino.image.processor.object.ObstacleAction;
-import dino.image.processor.object.ObstacleDimension;
 import dino.image.processor.object.ObstacleType;
 import dino.util.Constants;
-import dino.util.ImageUtility;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
+import java.awt.image.DataBuffer;
+import java.io.File;
+import java.io.IOException;
 
 public class GameCanvas {
     private final BufferedImage image;
     private ObstacleType obstacleType = ObstacleType.NONE;
-    private int groundObjectWidth = 0;
+    private int objectWidth = 0;
     private int objectXAxisPoint;
 
+    static int i = 0;
+
     public GameCanvas(BufferedImage image) {
-        this.image = removeDinoFloorAndSkyFromImage(image);
-        this.findObject();
+        ImageSegmentation imageSegmentation = new ImageSegmentation();
+        ImageSegmentation.ObjectInfo objectInfo1 = imageSegmentation.processImage(removeDinoFloorAndSkyFromImage(image), 10, 0.4);
+        ImageSegmentation.ObjectInfo objectInfo = imageSegmentation.dilateImage(objectInfo1.processedImage,10,0.4,3);
+        this.image = objectInfo.processedImage;
+        System.out.printf("start position %d width %d %n",objectInfo.startX,objectInfo.width);
+        writeImageToFile(this.image, "C:\\Users\\rahulchandna\\IdeaProjects\\dino_game_using_fixed_pixels_approach_only_selenium_and_java_used\\images\\image_" + (i++) + ".png");
+        //this.findObject();
     }
+
 
     private BufferedImage removeDinoFloorAndSkyFromImage(BufferedImage image) {
+        int startX = 60;  // adjust to remove the dino
+        int startY = 100;  // adjust to set the floor
+        int width = image.getWidth() - startX;
+        int height = Math.min(image.getHeight() - startY, 130);
+        return image.getSubimage(startX, startY, width, height);
+    }
+
+    public void writeImageToFile(BufferedImage image, String filePath) {
         try {
-            return image.getSubimage(Constants.DINO_X_AXIS, Constants.DINO_Y_AXIS, image.getWidth() - Constants.DINO_X_AXIS, 35);
-        } catch (Exception ignored) {
-            return image;
+            String format = filePath.substring(filePath.lastIndexOf(".") + 1);
+            File outputFile = new File(filePath);
+            ImageIO.write(image, format, outputFile);
+            System.out.println("Image saved successfully to: " + filePath);
+        } catch (IOException e) {
+            System.err.println("Error saving image: " + e.getMessage());
         }
     }
 
-    public DataBufferByte imageDataBuffer() {
-        return (DataBufferByte) image.getRaster().getDataBuffer();
+    public DataBuffer imageDataBuffer() {
+        return image.getRaster().getDataBuffer();
     }
 
-
-    private boolean isAnyPixelFoundAtBottomFrom(int currentXAxisLocation) {
-        int traverseYAxis = image.getHeight() - 1;
-        return new ImageUtility(image).isGrayPixel(currentXAxisLocation, traverseYAxis);
-    }
-
-    private void findObject() {
-        int firstPixelFoundAt = Constants.PIXEL_NOT_FOUND;
-        for (int X_AXIS = 0; X_AXIS < image.getWidth(); X_AXIS++) {
-            if (firstPixelFoundAt != Constants.PIXEL_NOT_FOUND && (X_AXIS - firstPixelFoundAt) > Constants.MINIMUM_GROUP_OF_PIXELS) {
-                break;
-            } else if (isAnyPixelFoundAtBottomFrom(X_AXIS)) {
-                firstPixelFoundAt = setFirstPixelValue(firstPixelFoundAt, X_AXIS);
-                this.obstacleType = ObstacleType.CACTUS;
-                this.groundObjectWidth = new ObstacleDimension(this.objectXAxisPoint, this.image).determineWidthOfTheGroundObject();
-            } else if (new ImageUtility(image).isAnyPixelFoundAtTop(X_AXIS)) {
-                firstPixelFoundAt = setFirstPixelValue(firstPixelFoundAt, X_AXIS);
-                this.obstacleType = ObstacleType.BIRD;
-            }
-        }
-    }
-
-    private int setFirstPixelValue(int firstPixelFoundAt, int X_AXIS) {
-        if (firstPixelFoundAt == Constants.PIXEL_NOT_FOUND) {
-            this.objectXAxisPoint = X_AXIS;
-            return X_AXIS;
-        } else {
-            return firstPixelFoundAt;
-        }
-    }
-
+    // Existing methods remain the same
     public ObstacleType obstacleType() {
         return this.obstacleType;
     }
 
     public boolean isLongGroundObject() {
-        return groundObjectWidth >= Constants.CLUSTERED_CACTUS_WIDTH;
+        return objectWidth >= Constants.CLUSTERED_CACTUS_WIDTH;
     }
 
-    public int getGroundObjectWidth() {
-        return groundObjectWidth;
+    public int getObjectWidth() {
+        return objectWidth;
     }
 
     public int distanceFromObject() {
-        int firstPixelWasFoundAt = this.objectXAxisPoint;
-        if (isLongGroundObject()) {
-            return firstPixelWasFoundAt + getGroundObjectWidth();
-        } else {
-            return firstPixelWasFoundAt;
-        }
+        return isLongGroundObject() ? objectXAxisPoint + objectWidth : objectXAxisPoint;
     }
 
     private boolean isObstacleClose() {
@@ -89,12 +75,7 @@ public class GameCanvas {
     }
 
     public ObstacleAction getNextObstacleAction() {
-        if (obstacleType() == ObstacleType.CACTUS && isObstacleClose()) {
-            return ObstacleAction.JUMP;
-        } else if (obstacleType() == ObstacleType.BIRD && isObstacleClose()) {
-            return ObstacleAction.LOWER_THE_HEAD;
-        } else {
-            return ObstacleAction.NONE;
-        }
+
+        return ObstacleAction.NONE;
     }
 }
