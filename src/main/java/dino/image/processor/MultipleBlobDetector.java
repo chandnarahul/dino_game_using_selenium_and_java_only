@@ -50,9 +50,10 @@ public class MultipleBlobDetector {
 
         // Dilation kernel (structuring element) - 3x3
         int[][] kernel = {
-                {1, 1, 1},
-                {1, 1, 1},
-                {1, 1, 1},
+                {1, 1, 1, 1},
+                {1, 1, 1, 1},
+                {1, 1, 1, 1},
+                {1, 1, 1, 1},
         };
 
         // Iterate through each pixel

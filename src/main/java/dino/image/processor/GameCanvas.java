@@ -16,7 +16,7 @@ public class GameCanvas {
         ImageSegmentation imageSegmentation = new ImageSegmentation();
         this.image = imageSegmentation.convertToBinary(imageSegmentation.removeDinoFloorAndSkyFromImage(originalImage));
         this.blobs = new MultipleBlobDetector().countBlobsAfterDilation(this.image);
-        System.out.println(blobs.size());
+        System.out.println(blobs.size()+" "+blobs);
     }
 
     public DataBuffer imageDataBuffer() {

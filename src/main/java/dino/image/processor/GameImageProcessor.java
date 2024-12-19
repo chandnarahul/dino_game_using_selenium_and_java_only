@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
-import java.util.Arrays;
 import java.util.List;
 
 import static dino.util.Constants.MAX_COMMON_IMAGES;
@@ -47,30 +46,11 @@ public class GameImageProcessor {
     }
 
     public static boolean areDataBuffersEqual(DataBuffer buffer1, DataBuffer buffer2) {
-        if (anyGrayPixelInBuffers(buffer1, buffer2)) {
-            if (buffer1 == buffer2) return true;
-            if (buffer1 == null || buffer2 == null) return false;
-            if (buffer1.getClass() != buffer2.getClass()) return false;
-            if (buffer1.getSize() != buffer2.getSize()) return false;
+        if (buffer1 == buffer2) return true;
+        if (buffer1 == null || buffer2 == null) return false;
+        if (buffer1.getClass() != buffer2.getClass()) return false;
+        if (buffer1.getSize() != buffer2.getSize()) return false;
 
-            if (buffer1 instanceof DataBufferByte) {
-                return Arrays.equals(((DataBufferByte) buffer1).getData(), ((DataBufferByte) buffer2).getData());
-            } else if (buffer1 instanceof DataBufferInt) {
-                return Arrays.equals(((DataBufferInt) buffer1).getData(), ((DataBufferInt) buffer2).getData());
-            } else {
-                for (int i = 0; i < buffer1.getSize(); i++) {
-                    if (buffer1.getElem(i) != buffer2.getElem(i)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }else{
-            return false;
-        }
-    }
-
-    public static boolean anyGrayPixelInBuffers(DataBuffer buffer1, DataBuffer buffer2) {
         boolean hasGrayscalePixel1 = false;
         boolean hasGrayscalePixel2 = false;
 
