@@ -47,22 +47,78 @@ public class GameImageProcessor {
     }
 
     public static boolean areDataBuffersEqual(DataBuffer buffer1, DataBuffer buffer2) {
-        if (buffer1 == buffer2) return true;
-        if (buffer1 == null || buffer2 == null) return false;
-        if (buffer1.getClass() != buffer2.getClass()) return false;
-        if (buffer1.getSize() != buffer2.getSize()) return false;
+        if (anyGrayPixelInBuffers(buffer1, buffer2)) {
+            if (buffer1 == buffer2) return true;
+            if (buffer1 == null || buffer2 == null) return false;
+            if (buffer1.getClass() != buffer2.getClass()) return false;
+            if (buffer1.getSize() != buffer2.getSize()) return false;
 
-        if (buffer1 instanceof DataBufferByte) {
-            return Arrays.equals(((DataBufferByte) buffer1).getData(), ((DataBufferByte) buffer2).getData());
-        } else if (buffer1 instanceof DataBufferInt) {
-            return Arrays.equals(((DataBufferInt) buffer1).getData(), ((DataBufferInt) buffer2).getData());
-        } else {
-            for (int i = 0; i < buffer1.getSize(); i++) {
-                if (buffer1.getElem(i) != buffer2.getElem(i)) {
-                    return false;
+            if (buffer1 instanceof DataBufferByte) {
+                return Arrays.equals(((DataBufferByte) buffer1).getData(), ((DataBufferByte) buffer2).getData());
+            } else if (buffer1 instanceof DataBufferInt) {
+                return Arrays.equals(((DataBufferInt) buffer1).getData(), ((DataBufferInt) buffer2).getData());
+            } else {
+                for (int i = 0; i < buffer1.getSize(); i++) {
+                    if (buffer1.getElem(i) != buffer2.getElem(i)) {
+                        return false;
+                    }
                 }
+                return true;
             }
-            return true;
+        }else{
+            return false;
         }
     }
+
+    public static boolean anyGrayPixelInBuffers(DataBuffer buffer1, DataBuffer buffer2) {
+        boolean hasGrayscalePixel1 = false;
+        boolean hasGrayscalePixel2 = false;
+
+        if (buffer1 instanceof DataBufferByte && buffer2 instanceof DataBufferByte) {
+            byte[] data1 = ((DataBufferByte) buffer1).getData();
+            byte[] data2 = ((DataBufferByte) buffer2).getData();
+            for (int i = 0; i < data1.length; i++) {
+                if ((data1[i] & 0xFF) > 0 && (data1[i] & 0xFF) < 255) {
+                    hasGrayscalePixel1 = true;
+                }
+                if ((data2[i] & 0xFF) > 0 && (data2[i] & 0xFF) < 255) {
+                    hasGrayscalePixel2 = true;
+                }
+                if (data1[i] != data2[i]) return false;
+            }
+        } else if (buffer1 instanceof DataBufferInt && buffer2 instanceof DataBufferInt) {
+            int[] data1 = ((DataBufferInt) buffer1).getData();
+            int[] data2 = ((DataBufferInt) buffer2).getData();
+            for (int i = 0; i < data1.length; i++) {
+                if (data1[i] > 0 && data1[i] < 0xFFFFFF) {
+                    hasGrayscalePixel1 = true;
+                }
+                if (data2[i] > 0 && data2[i] < 0xFFFFFF) {
+                    hasGrayscalePixel2 = true;
+                }
+                if (data1[i] != data2[i]) return false;
+            }
+        } else {
+            for (int i = 0; i < buffer1.getSize(); i++) {
+                int pixel1 = buffer1.getElem(i);
+                int pixel2 = buffer2.getElem(i);
+
+                if (pixel1 > 0 && pixel1 < 255) {
+                    hasGrayscalePixel1 = true;
+                }
+                if (pixel2 > 0 && pixel2 < 255) {
+                    hasGrayscalePixel2 = true;
+                }
+                if (pixel1 != pixel2) return false;
+            }
+        }
+
+        // Ignore comparison if either buffer lacks grayscale pixels
+        if (!hasGrayscalePixel1 || !hasGrayscalePixel2) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

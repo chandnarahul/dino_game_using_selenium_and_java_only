@@ -1,6 +1,9 @@
 package dino.util;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class ImageUtility {
 
@@ -8,10 +11,6 @@ public class ImageUtility {
 
     public ImageUtility(BufferedImage image) {
         this.image = image;
-    }
-
-    public boolean isAnyPixelFoundAtTop(int i) {
-        return isGrayPixel(i, 0);
     }
 
     public boolean isGrayPixel(int xAxis, int yAxix) {
@@ -26,5 +25,16 @@ public class ImageUtility {
         int grayscale = (int) (0.299 * red + 0.587 * green + 0.114 * blue);
 
         return grayscale < Constants.GRAY_SCALE_PIXEL_COLOR;
+    }
+
+
+    public void writeImageToFile(String filePath) {
+        try {
+            File outputFile = new File("images" + File.separator + filePath);
+            ImageIO.write(image, "png", outputFile);
+            System.out.println("Image saved successfully to: " + filePath);
+        } catch (IOException e) {
+            System.err.println("Error saving image: " + e.getMessage());
+        }
     }
 }

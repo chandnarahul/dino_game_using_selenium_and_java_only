@@ -4,12 +4,9 @@ import dino.image.processor.GameCanvas;
 import dino.image.processor.GameImageProcessor;
 import dino.image.processor.object.ObstacleAction;
 import dino.util.Constants;
-import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.*;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +27,8 @@ public class SeleniumDino {
         try {
             startGame();
             gameLoop();  // Extracted game loop to its own method for clarity
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             webDriver.quit();
         }
@@ -74,11 +72,8 @@ public class SeleniumDino {
         webDriver.findElement(By.tagName("body")).sendKeys(Keys.UP);
     }
 
-    private void performDuck() throws AWTException {
-        Robot robot = new Robot();
-        robot.keyPress(KeyEvent.VK_DOWN);
-        robot.delay(500); // Consider adjusting the delay or making it configurable
-        robot.keyRelease(KeyEvent.VK_DOWN);
+    private void performDuck() {
+        webDriver.findElement(By.tagName("body")).sendKeys(Keys.DOWN);
     }
 
     private int calculateGameDuration() {

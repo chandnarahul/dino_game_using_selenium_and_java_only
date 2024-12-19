@@ -1,7 +1,5 @@
 package dino.image.processor;
 
-import dino.image.processor.GameImageProcessor;
-import dino.image.processor.GameCanvas;
 import dino.util.Constants;
 import org.junit.Test;
 
