@@ -1,6 +1,9 @@
 package dino.util;
 
+import dino.image.processor.object.Blob;
+
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +28,43 @@ public class ImageUtility {
         int grayscale = (int) (0.299 * red + 0.587 * green + 0.114 * blue);
 
         return grayscale < Constants.GRAY_SCALE_PIXEL_COLOR;
+    }
+
+    public void markBlobInImage(Blob blob) {
+        Graphics2D g2d = this.image.createGraphics();
+
+        // Enable antialiasing for smoother lines
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Set thick stroke (5 pixels wide)
+        g2d.setStroke(new BasicStroke(5.0f));
+        g2d.setColor(new Color(255, 0, 0));
+
+        // Draw thick rectangle outline around blob
+        // Adding small padding (5 pixels) around the blob for better visibility
+        g2d.drawRect(
+                blob.leftmostX - 5,
+                blob.topY - 5,
+                blob.getWidth() + 9,  // Add 9 to compensate for padding on both sides
+                blob.getHeight() + 9
+        );
+
+        // Draw thick crosshairs at center point
+        int centerX = blob.leftmostX + (blob.getWidth() / 2);
+        int centerY = blob.topY + (blob.getHeight() / 2);
+
+        // Longer crosshairs for better visibility
+        g2d.drawLine(
+                centerX - 10, centerY,
+                centerX + 10, centerY
+        );
+
+        g2d.drawLine(
+                centerX, centerY - 10,
+                centerX, centerY + 10
+        );
+
+        g2d.dispose();
     }
 
 

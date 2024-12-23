@@ -1,5 +1,6 @@
 package dino.image.processor;
 
+import dino.image.processor.object.Blob;
 import dino.image.processor.object.ObstacleAction;
 import dino.image.processor.object.ObstacleType;
 
@@ -10,7 +11,7 @@ import java.util.List;
 public class GameCanvas {
     private final BufferedImage image;
     private final ObstacleType obstacleType = ObstacleType.NONE;
-    private final List<MultipleBlobDetector.Blob> blobs;
+    private final List<Blob> blobs;
 
     public GameCanvas(BufferedImage originalImage) {
         ImageSegmentation imageSegmentation = new ImageSegmentation();

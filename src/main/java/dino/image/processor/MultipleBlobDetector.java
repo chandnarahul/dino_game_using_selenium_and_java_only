@@ -1,5 +1,6 @@
 package dino.image.processor;
 
+import dino.image.processor.object.Blob;
 import dino.util.ImageUtility;
 
 import java.awt.*;
@@ -8,37 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultipleBlobDetector {
-    public static class Blob {
-        public int leftmostX;
-        public int rightmostX;
-        public int topY;
-        public int bottomY;
-
-        public int getWidth() {
-            return rightmostX - leftmostX + 1;
-        }
-
-        public int getHeight() {
-            return bottomY - topY + 1;
-        }
-
-        @Override
-        public String toString() {
-            return "Blob: Width=" + getWidth() + ", Height=" + getHeight() +
-                    ", X=[" + leftmostX + "," + rightmostX + "]" +
-                    ", Y=[" + topY + "," + bottomY + "]";
-        }
-    }
-
-    static int i = 0;
+    private static int i = 0;
 
     public List<Blob> countBlobsAfterDilation(BufferedImage originalImage) {
         // First, dilate the image
         BufferedImage dilatedImage = dilateCactus(originalImage);
-        new ImageUtility(dilatedImage).writeImageToFile("image_dialated_" + (i++) + ".png");
-
         // Return the number of blobs
-        return detectBlobs(dilatedImage);
+        List<Blob> blobs = detectBlobs(originalImage);
+        ImageUtility imageUtility = new ImageUtility(dilatedImage);
+        blobs.stream().forEach(b ->
+                imageUtility.markBlobInImage(b)
+        );
+        imageUtility.writeImageToFile("image_dialated_" + (i++) + ".png");
+        return blobs;
     }
 
     public BufferedImage dilateCactus(BufferedImage originalImage) {
@@ -135,8 +118,7 @@ public class MultipleBlobDetector {
         return blobs;
     }
 
-    private void floodFillAndMeasure(BufferedImage image, int startX, int startY,
-                                     boolean[][] visited, Blob blob) {
+    private void floodFillAndMeasure(BufferedImage image, int startX, int startY, boolean[][] visited, Blob blob) {
         // Use a simple queue for flood fill
         List<int[]> queue = new ArrayList<>();
         queue.add(new int[]{startX, startY});
