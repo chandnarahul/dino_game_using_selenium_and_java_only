@@ -17,9 +17,7 @@ public class MultipleBlobDetector {
         // Return the number of blobs
         List<Blob> blobs = detectBlobs(originalImage);
         ImageUtility imageUtility = new ImageUtility(dilatedImage);
-        blobs.stream().forEach(b ->
-                imageUtility.markBlobInImage(b)
-        );
+        blobs.forEach(imageUtility::markBlobInImage);
         imageUtility.writeImageToFile("image_dialated_" + (i++) + ".png");
         return blobs;
     }
@@ -80,7 +78,7 @@ public class MultipleBlobDetector {
                             newY >= 0 && newY < image.getHeight()) {
 
                         // If any neighboring pixel is black and kernel supports it
-                        if (new ImageSegmentation().isDarkPixel(image, newX, newY) && kernel[kernelY][kernelX] == 1) {
+                        if (new ImageSegmentation(image).isDarkPixel(newX, newY) && kernel[kernelY][kernelX] == 1) {
                             return true;
                         }
                     }
@@ -100,7 +98,7 @@ public class MultipleBlobDetector {
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 // If pixel is black and not visited, start blob detection
-                if (new ImageSegmentation().isDarkPixel(image, x, y) && !visited[x][y]) {
+                if (new ImageSegmentation(image).isDarkPixel(x, y) && !visited[x][y]) {
                     Blob blob = new Blob();
                     blob.leftmostX = image.getWidth();
                     blob.rightmostX = -1;
@@ -130,7 +128,7 @@ public class MultipleBlobDetector {
 
             // Check bounds and if pixel is already visited
             if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight() ||
-                    visited[x][y] || !new ImageSegmentation().isDarkPixel(image, x, y)) {
+                    visited[x][y] || !new ImageSegmentation(image).isDarkPixel(x, y)) {
                 continue;
             }
 

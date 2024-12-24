@@ -14,10 +14,10 @@ public class GameCanvas {
     private final List<Blob> blobs;
 
     public GameCanvas(BufferedImage originalImage) {
-        ImageSegmentation imageSegmentation = new ImageSegmentation();
-        this.image = imageSegmentation.convertToBinary(imageSegmentation.removeDinoFloorAndSkyFromImage(originalImage));
+        BufferedImage imageWithoutDinoFloorAndSky = new ImageSegmentation(originalImage).removeDinoFloorAndSkyFromImage();
+        this.image = new ImageSegmentation(imageWithoutDinoFloorAndSky).convertToBinary();
         this.blobs = new MultipleBlobDetector().countBlobsAfterDilation(this.image);
-        System.out.println(blobs.size()+" "+blobs);
+        System.out.println(blobs.size() + " " + blobs);
     }
 
     public DataBuffer imageDataBuffer() {
