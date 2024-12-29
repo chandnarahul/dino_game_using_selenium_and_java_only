@@ -1,6 +1,6 @@
 package dino.util;
 
-import dino.image.processor.object.Blob;
+import dino.image.processor.object.GameObjectPosition;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -10,6 +10,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class ImageUtility {
 
@@ -33,43 +34,39 @@ public class ImageUtility {
         return grayscale < Constants.GRAY_SCALE_PIXEL_COLOR;
     }
 
-    public void markBlobInImage(Blob blob) {
+    public void addObjectDimensions(List<GameObjectPosition> gameObjectPositions) {
         Graphics2D g2d = this.image.createGraphics();
-
         // Enable antialiasing for smoother lines
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
         // Set thick stroke (5 pixels wide)
         g2d.setStroke(new BasicStroke(5.0f));
         g2d.setColor(new Color(0, 0, 0));
 
-        // Draw thick rectangle outline around blob
-        // Adding small padding (5 pixels) around the blob for better visibility
-        g2d.drawRect(
-                blob.getLeftmostX() - 5,
-                blob.getTopY() - 5,
-                blob.getWidth() + 9,  // Add 9 to compensate for padding on both sides
-                blob.getHeight() + 9
-        );
+        gameObjectPositions.forEach(gameObjectPosition -> {
+            g2d.drawRect(
+                    gameObjectPosition.getLeftmostX() - 5,
+                    gameObjectPosition.getTopY() - 5,
+                    gameObjectPosition.getWidth() + 9,  // Add 9 to compensate for padding on both sides
+                    gameObjectPosition.getHeight() + 9
+            );
 
-        // Draw thick crosshairs at center point
-        int centerX = blob.getLeftmostX() + (blob.getWidth() / 2);
-        int centerY = blob.getTopY() + (blob.getHeight() / 2);
+            // Draw thick crosshairs at center point
+            int centerX = gameObjectPosition.getLeftmostX() + (gameObjectPosition.getWidth() / 2);
+            int centerY = gameObjectPosition.getTopY() + (gameObjectPosition.getHeight() / 2);
 
-        // Longer crosshairs for better visibility
-        g2d.drawLine(
-                centerX - 10, centerY,
-                centerX + 10, centerY
-        );
+            // Longer lines for better visibility
+            g2d.drawLine(
+                    centerX - 10, centerY,
+                    centerX + 10, centerY
+            );
 
-        g2d.drawLine(
-                centerX, centerY - 10,
-                centerX, centerY + 10
-        );
-
+            g2d.drawLine(
+                    centerX, centerY - 10,
+                    centerX, centerY + 10
+            );
+        });
         g2d.dispose();
     }
-
 
     public void writeImageToFile(String filePath) {
         try {
@@ -117,7 +114,7 @@ public class ImageUtility {
         boolean hasGrayscalePixel1 = false;
         boolean hasGrayscalePixel2 = false;
 
-        if (buffer1 instanceof DataBufferByte && buffer2 instanceof DataBufferByte) {
+        if (buffer1 instanceof DataBufferByte) {
             byte[] data1 = ((DataBufferByte) buffer1).getData();
             byte[] data2 = ((DataBufferByte) buffer2).getData();
             for (int i = 0; i < data1.length; i++) {
@@ -129,7 +126,7 @@ public class ImageUtility {
                 }
                 if (data1[i] != data2[i]) return false;
             }
-        } else if (buffer1 instanceof DataBufferInt && buffer2 instanceof DataBufferInt) {
+        } else if (buffer1 instanceof DataBufferInt) {
             int[] data1 = ((DataBufferInt) buffer1).getData();
             int[] data2 = ((DataBufferInt) buffer2).getData();
             for (int i = 0; i < data1.length; i++) {

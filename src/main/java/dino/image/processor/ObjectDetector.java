@@ -1,6 +1,6 @@
 package dino.image.processor;
 
-import dino.image.processor.object.Blob;
+import dino.image.processor.object.GameObjectPosition;
 import dino.util.ImageUtility;
 
 import java.awt.image.BufferedImage;
@@ -14,10 +14,10 @@ public class ObjectDetector {
         this.image = image;
     }
 
-    public List<Blob> detect() {
+    public List<GameObjectPosition> detect() {
         // 2D array to track visited pixels
         boolean[][] visited = new boolean[image.getWidth()][image.getHeight()];
-        List<Blob> blobs = new ArrayList<>();
+        List<GameObjectPosition> blobs = new ArrayList<>();
 
         // Scan through entire image
         for (int y = 0; y < image.getHeight(); y++) {
@@ -25,8 +25,8 @@ public class ObjectDetector {
                 // If pixel is black and not visited, start blob detection
                 if (new ImageUtility(image).isDarkPixel(x, y) && !visited[x][y]) {
                     // Flood fill to mark the entire nextBlob
-                    Blob initialBlob = new Blob(image.getWidth(), -1, image.getHeight(), -1);
-                    Blob floodFillAndMeasureBlob = floodFillAndMeasure(x, y, visited, initialBlob);
+                    GameObjectPosition initialBlob = new GameObjectPosition(image.getWidth(), -1, image.getHeight(), -1);
+                    GameObjectPosition floodFillAndMeasureBlob = floodFillAndMeasure(x, y, visited, initialBlob);
                     blobs.add(floodFillAndMeasureBlob);
                 }
             }
@@ -35,12 +35,12 @@ public class ObjectDetector {
         return blobs;
     }
 
-    private Blob floodFillAndMeasure(int startX, int startY, boolean[][] visited, Blob blob) {
+    private GameObjectPosition floodFillAndMeasure(int startX, int startY, boolean[][] visited, GameObjectPosition blob) {
         // Use a simple queue for flood fill
         List<int[]> queue = new ArrayList<>();
         queue.add(new int[]{startX, startY});
 
-        Blob tempBlob = blob;
+        GameObjectPosition tempBlob = blob;
         while (!queue.isEmpty()) {
             int[] current = queue.remove(0);
             int x = current[0];
@@ -56,7 +56,7 @@ public class ObjectDetector {
             visited[x][y] = true;
 
             // Update blob dimensions
-            tempBlob = new Blob(Math.min(tempBlob.getLeftmostX(), x), Math.max(tempBlob.getRightmostX(), x), Math.min(tempBlob.getTopY(), y), Math.max(tempBlob.getBottomY(), y));
+            tempBlob = new GameObjectPosition(Math.min(tempBlob.getLeftmostX(), x), Math.max(tempBlob.getRightmostX(), x), Math.min(tempBlob.getTopY(), y), Math.max(tempBlob.getBottomY(), y));
 
             // Add neighboring pixels to queue
             queue.add(new int[]{x + 1, y});

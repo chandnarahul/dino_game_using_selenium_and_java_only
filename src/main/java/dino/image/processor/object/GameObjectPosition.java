@@ -1,12 +1,12 @@
 package dino.image.processor.object;
 
-public class Blob {
+public class GameObjectPosition {
     private final int leftmostX;
     private final int rightmostX;
     private final int topY;
     private final int bottomY;
 
-    public Blob(int leftmostX, int rightmostX, int topY, int bottomY) {
+    public GameObjectPosition(int leftmostX, int rightmostX, int topY, int bottomY) {
         this.leftmostX = leftmostX;
         this.rightmostX = rightmostX;
         this.topY = topY;

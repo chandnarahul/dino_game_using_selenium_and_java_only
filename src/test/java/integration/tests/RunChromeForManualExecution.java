@@ -18,6 +18,6 @@ public class RunChromeForManualExecution {
         webDriver.get(sampleFile.toUri().toString());
         webDriver.manage().window().setSize(new Dimension(500, 450));
         Thread.sleep(1000);
-        new SeleniumDino(webDriver).run();
+        System.out.println(new SeleniumDino(webDriver).run());
     }
 }

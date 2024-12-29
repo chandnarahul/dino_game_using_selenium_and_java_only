@@ -1,6 +1,5 @@
 package dino.image.processor;
 
-import dino.image.processor.exception.GameOverException;
 import dino.util.Constants;
 import dino.util.ImageUtility;
 
@@ -18,14 +17,15 @@ public class GameImageTracker {
         this.previousBufferedImages = new ArrayList<>(Constants.MAX_COMMON_IMAGES); // Initialized in constructor
     }
 
-    public void stopExecutionIfNoNewImageIsReceived(BufferedImage currentBufferedImage) {
+    public Boolean shouldContinueWithGameExecution(BufferedImage currentBufferedImage) {
         if (previousBufferedImages.size() >= MAX_COMMON_IMAGES) {
-            throw new GameOverException("game over");
+            return Boolean.FALSE;
         }
         if (ifUniqueImage(currentBufferedImage)) {
             previousBufferedImages.clear();
         }
         previousBufferedImages.add(currentBufferedImage);
+        return Boolean.TRUE;
     }
 
     private boolean ifUniqueImage(BufferedImage currentBufferedImage) {
