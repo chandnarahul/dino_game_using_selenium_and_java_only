@@ -1,6 +1,6 @@
 package dino.image.processor;
 
-import dino.util.ImageUtility;
+import dino.util.BinaryImageUtility;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -68,7 +68,7 @@ public class DilateObject {
                             newY >= 0 && newY < image.getHeight()) {
 
                         // If any neighboring pixel is black and kernel supports it
-                        if (new ImageUtility(image).isDarkPixel(newX, newY) && kernel[kernelY][kernelX] == 1) {
+                        if (new BinaryImageUtility(image).isDarkPixel(newX, newY) && kernel[kernelY][kernelX] == 1) {
                             return true;
                         }
                     }

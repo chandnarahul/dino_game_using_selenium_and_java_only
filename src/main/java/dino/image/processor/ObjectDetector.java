@@ -1,7 +1,7 @@
 package dino.image.processor;
 
 import dino.image.processor.object.GameObjectPosition;
-import dino.util.ImageUtility;
+import dino.util.BinaryImageUtility;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class ObjectDetector {
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 // If pixel is black and not visited, start blob detection
-                if (new ImageUtility(image).isDarkPixel(x, y) && !visited[x][y]) {
+                if (new BinaryImageUtility(image).isDarkPixel(x, y) && !visited[x][y]) {
                     // Flood fill to mark the entire nextBlob
                     GameObjectPosition initialBlob = new GameObjectPosition(image.getWidth(), -1, image.getHeight(), -1);
                     GameObjectPosition floodFillAndMeasureBlob = floodFillAndMeasure(x, y, visited, initialBlob);
@@ -48,7 +48,7 @@ public class ObjectDetector {
 
             // Check bounds and if pixel is already visited
             if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight() ||
-                    visited[x][y] || !new ImageUtility(image).isDarkPixel(x, y)) {
+                    visited[x][y] || !new BinaryImageUtility(image).isDarkPixel(x, y)) {
                 continue;
             }
 

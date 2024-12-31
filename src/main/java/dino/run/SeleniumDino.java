@@ -1,32 +1,29 @@
 package dino.run;
 
 import dino.image.processor.DilateObject;
-import dino.image.processor.GameImageTracker;
 import dino.image.processor.ImageSegmentation;
 import dino.image.processor.ObjectDetector;
-import dino.image.processor.action.Action;
-import dino.image.processor.action.ActionType;
 import dino.image.processor.object.GameObjectPosition;
-import dino.util.ImageUtility;
+import dino.util.BinaryImageUtility;
+import dino.util.RGBImageUtility;
+import dino.util.SeleniumAction;
 import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+
+import static dino.util.Constants.MAX_COMMON_OBJECTS;
 
 public class SeleniumDino {
     private final WebDriver webDriver;
     private final Date gameStartTime;
-    private final GameImageTracker gameImageTracker;
     private int screenshot_image_index = 0;
 
     public SeleniumDino(WebDriver webDriver) {
         this.webDriver = webDriver;
-        this.gameImageTracker = new GameImageTracker();
         this.gameStartTime = new Date();
     }
 
@@ -43,37 +40,47 @@ public class SeleniumDino {
     }
 
     private void startGame() {
-        performJump(200);
+        SeleniumAction.performJump(webDriver, 200);
     }
 
     private void gameLoop() throws Exception {
-        BufferedImage screenshot = takeScreenshot();
-        while (gameImageTracker.shouldContinueWithGameExecution(screenshot)) {
-            processImageAndTakeAction(screenshot);
+        while (true) {
+            BufferedImage screenshot = takeScreenshot();
+            BufferedImage imageWithoutDinoFloorAndSky = new ImageSegmentation(screenshot).removeDinoFloorAndSkyFromImage();
+            BufferedImage binaryImage = new RGBImageUtility(imageWithoutDinoFloorAndSky).convertToBinary();
+            BufferedImage dilatedImage = new DilateObject(binaryImage).dilate();
+            ObjectDetector detector = new ObjectDetector(dilatedImage);
+            List<GameObjectPosition> gameObjectPositions = detector.detect();
+            saveScreenshotForDebug(dilatedImage, gameObjectPositions);
+            // If no objects are detected, skip the rest of the loop
+            if (gameObjectPositions.isEmpty()) {
+                continue;
+            }
+            if (hasConsecutiveObjectsWithSameYPosition(gameObjectPositions)) {
+                break;
+            }
         }
     }
 
-    private void processImageAndTakeAction(BufferedImage screenshot) {
-        Action nextAction = getNextAction(screenshot);
-        if (nextAction.getActionType() == ActionType.JUMP) {
-            performJump(nextAction.getActionDuration());
-        } else if (nextAction.getActionType() == ActionType.LOWER_THE_HEAD) {
-            performDuck(nextAction.getActionDuration());
+    private boolean hasConsecutiveObjectsWithSameYPosition(List<GameObjectPosition> gameObjectPositions) {
+        int similarObjectCount = 0;
+        int topYPosition = -1;  // Initialize to a value that cannot match initially
+        for (GameObjectPosition object : gameObjectPositions) {
+            if (topYPosition == object.getTopY()) {
+                similarObjectCount++;
+            } else {
+                similarObjectCount = 0;
+                topYPosition = object.getTopY();
+            }
+            if (similarObjectCount > MAX_COMMON_OBJECTS) {
+                return true;
+            }
         }
+        return false;
     }
-
-    private Action getNextAction(BufferedImage screenshot) {
-        BufferedImage imageWithoutDinoFloorAndSky = new ImageSegmentation(screenshot).removeDinoFloorAndSkyFromImage();
-        BufferedImage binaryImage = new ImageUtility(imageWithoutDinoFloorAndSky).convertToBinary();
-        BufferedImage dilatedImage = new DilateObject(binaryImage).dilate();
-        List<GameObjectPosition> gameObjectPositions = new ObjectDetector(dilatedImage).detect();
-        saveScreenshotForDebug(dilatedImage, gameObjectPositions);
-        return new Action(ActionType.NONE, 0);
-    }
-
 
     private void saveScreenshotForDebug(BufferedImage bufferedImage, List<GameObjectPosition> gameObjectPositions) {
-        ImageUtility imageUtility = new ImageUtility(bufferedImage);
+        BinaryImageUtility imageUtility = new BinaryImageUtility(bufferedImage);
         imageUtility.addObjectDimensions(gameObjectPositions);
         imageUtility.writeImageToFile("dilated_image_" + (screenshot_image_index++) + ".png");
     }
@@ -83,22 +90,6 @@ public class SeleniumDino {
         Rectangle rect = gameCanvas.getRect();
         BufferedImage fullImage = ImageIO.read(((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE));
         return fullImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
-    }
-
-    private void performJump(long actionDuration) {
-        Actions actions = new Actions(webDriver);
-        actions.keyDown(Keys.ARROW_UP)
-                .pause(Duration.ofMillis(actionDuration))
-                .keyUp(Keys.ARROW_UP)
-                .perform();
-    }
-
-    private void performDuck(long actionDuration) {
-        Actions actions = new Actions(webDriver);
-        actions.keyDown(Keys.ARROW_DOWN)
-                .pause(Duration.ofMillis(actionDuration))
-                .keyUp(Keys.ARROW_DOWN)
-                .perform();
     }
 
     private int calculateGameDuration() {
