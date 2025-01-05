@@ -1,5 +1,6 @@
 package dino.run;
 
+import dino.image.processor.ContourDetector;
 import dino.image.processor.DilateObject;
 import dino.image.processor.ImageSegmentation;
 import dino.image.processor.ObjectDetector;
@@ -12,22 +13,23 @@ import org.openqa.selenium.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static dino.util.Constants.MAX_COMMON_OBJECTS;
+import static dino.Constants.MAX_COMMON_OBJECTS;
 
 public class SeleniumDino {
     private final WebDriver webDriver;
-    private final Date gameStartTime;
+    private final long gameStartTime;
     private int screenshot_image_index = 0;
 
     public SeleniumDino(WebDriver webDriver) {
         this.webDriver = webDriver;
-        this.gameStartTime = new Date();
+        this.gameStartTime = System.currentTimeMillis();
     }
 
-    public int run() {
+    public long run() {
         try {
             startGame();
             gameLoop();  // Extracted game loop to its own method for clarity
@@ -40,7 +42,7 @@ public class SeleniumDino {
     }
 
     private void startGame() {
-        SeleniumAction.performJump(webDriver, 200);
+        SeleniumAction.jump(webDriver, 200);
     }
 
     private void gameLoop() throws Exception {
@@ -48,29 +50,33 @@ public class SeleniumDino {
             BufferedImage screenshot = takeScreenshot();
             BufferedImage imageWithoutDinoFloorAndSky = new ImageSegmentation(screenshot).removeDinoFloorAndSkyFromImage();
             BufferedImage binaryImage = new RGBImageUtility(imageWithoutDinoFloorAndSky).convertToBinary();
-            BufferedImage dilatedImage = new DilateObject(binaryImage).dilate();
-            ObjectDetector detector = new ObjectDetector(dilatedImage);
-            List<GameObjectPosition> gameObjectPositions = detector.detect();
-            saveScreenshotForDebug(dilatedImage, gameObjectPositions);
+            //BufferedImage dilatedImage = new DilateObject(binaryImage).dilate();
+
+            //ObjectDetector detector = new ObjectDetector(dilatedImage);
+            //List<GameObjectPosition> gameObjectPositions = detector.detect();
+            List<GameObjectPosition> gameObjectPositions = Collections.EMPTY_LIST;
+            saveScreenshotForDebug(binaryImage, gameObjectPositions);
             // If no objects are detected, skip the rest of the loop
-            if (gameObjectPositions.isEmpty()) {
+            /*if (gameObjectPositions.isEmpty()) {
                 continue;
             }
             if (hasConsecutiveObjectsWithSameYPosition(gameObjectPositions)) {
                 break;
             }
+            System.out.println("decision"+gameObjectPositions.get(0));*/
+            System.out.println(ContourDetector.detectGameElements(binaryImage));
         }
     }
 
     private boolean hasConsecutiveObjectsWithSameYPosition(List<GameObjectPosition> gameObjectPositions) {
         int similarObjectCount = 0;
         int topYPosition = -1;  // Initialize to a value that cannot match initially
-        for (GameObjectPosition object : gameObjectPositions) {
-            if (topYPosition == object.getTopY()) {
+        for (GameObjectPosition gameObjectPosition : gameObjectPositions) {
+            if (topYPosition == gameObjectPosition.getTopY()) {
                 similarObjectCount++;
             } else {
                 similarObjectCount = 0;
-                topYPosition = object.getTopY();
+                topYPosition = gameObjectPosition.getTopY();
             }
             if (similarObjectCount > MAX_COMMON_OBJECTS) {
                 return true;
@@ -92,7 +98,7 @@ public class SeleniumDino {
         return fullImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
     }
 
-    private int calculateGameDuration() {
-        return (int) (new Date().getTime() - gameStartTime.getTime());
+    private long calculateGameDuration() {
+        return (System.currentTimeMillis() - gameStartTime);
     }
 }

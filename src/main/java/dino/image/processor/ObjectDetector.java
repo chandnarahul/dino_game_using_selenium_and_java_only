@@ -1,31 +1,33 @@
 package dino.image.processor;
 
 import dino.image.processor.object.GameObjectPosition;
-import dino.util.BinaryImageUtility;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ObjectDetector {
-    private final BufferedImage image;
+    private final int[][] image;
+    private final int height;
+    private final int width;
 
-    public ObjectDetector(BufferedImage image) {
+    public ObjectDetector(int[][] image) {
         this.image = image;
+        this.height = image.length;
+        this.width = image[0].length;
     }
 
     public List<GameObjectPosition> detect() {
         // 2D array to track visited pixels
-        boolean[][] visited = new boolean[image.getWidth()][image.getHeight()];
+        boolean[][] visited = new boolean[width][height];
         List<GameObjectPosition> blobs = new ArrayList<>();
 
         // Scan through entire image
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 // If pixel is black and not visited, start blob detection
-                if (new BinaryImageUtility(image).isDarkPixel(x, y) && !visited[x][y]) {
+                if (image[x][y] == 1 && !visited[x][y]) {
                     // Flood fill to mark the entire nextBlob
-                    GameObjectPosition initialBlob = new GameObjectPosition(image.getWidth(), -1, image.getHeight(), -1);
+                    GameObjectPosition initialBlob = new GameObjectPosition(width, -1, height, -1);
                     GameObjectPosition floodFillAndMeasureBlob = floodFillAndMeasure(x, y, visited, initialBlob);
                     blobs.add(floodFillAndMeasureBlob);
                 }
@@ -47,8 +49,8 @@ public class ObjectDetector {
             int y = current[1];
 
             // Check bounds and if pixel is already visited
-            if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight() ||
-                    visited[x][y] || !new BinaryImageUtility(image).isDarkPixel(x, y)) {
+            if (x < 0 || x >= width || y < 0 || y >= height ||
+                    visited[x][y] || !(image[x][y] == 1)) {
                 continue;
             }
 

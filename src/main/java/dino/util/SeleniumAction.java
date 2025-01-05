@@ -8,7 +8,7 @@ import java.time.Duration;
 
 public class SeleniumAction {
 
-    public static void performJump(WebDriver webDriver, long actionDuration) {
+    public static void jump(WebDriver webDriver, long actionDuration) {
         Actions actions = new Actions(webDriver);
         actions.keyDown(Keys.ARROW_UP)
                 .pause(Duration.ofMillis(actionDuration))
@@ -16,7 +16,7 @@ public class SeleniumAction {
                 .perform();
     }
 
-    public static void performDuck(WebDriver webDriver, long actionDuration) {
+    public static void duck(WebDriver webDriver, long actionDuration) {
         Actions actions = new Actions(webDriver);
         actions.keyDown(Keys.ARROW_DOWN)
                 .pause(Duration.ofMillis(actionDuration))

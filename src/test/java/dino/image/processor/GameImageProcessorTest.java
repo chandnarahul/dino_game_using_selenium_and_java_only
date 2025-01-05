@@ -1,6 +1,6 @@
 package dino.image.processor;
 
-import dino.util.Constants;
+import dino.Constants;
 import org.junit.Test;
 
 import java.awt.image.BufferedImage;

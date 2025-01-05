@@ -10,9 +10,9 @@ public class ImageSegmentation {
     }
 
     public BufferedImage removeDinoFloorAndSkyFromImage() {
-        int startX = 60;  // adjust to remove the dino
+        int startX = 60;  // adjust to remove the dino (includes extra pixels to remove dino in duck or down-arrow position)
         int width = image.getWidth() - startX;
         int height = image.getHeight() - 65;
-        return image.getSubimage(startX, 36, width, height);
+        return image;//.getSubimage(startX, 36, width, height);
     }
 }

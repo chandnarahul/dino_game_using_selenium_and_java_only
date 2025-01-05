@@ -1,43 +1,37 @@
 package dino.image.processor;
 
-import dino.util.BinaryImageUtility;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-
 public class DilateObject {
-    private final BufferedImage image;
+    private final int[][] image;
+    private final int height;
+    private final int width;
 
-    public DilateObject(BufferedImage image) {
+    public DilateObject(int[][] image) {
         this.image = image;
+        this.height = image.length;
+        this.width = image[0].length;
     }
 
-    public BufferedImage dilate() {
-        int width = image.getWidth();
-        int height = image.getHeight();
-
+    public int[][] dilate() {
         // Create a new image to store the dilated result
-        BufferedImage dilatedImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_BINARY);
+        int[][] dilatedImage = new int[height][width];
 
-        // Dilation kernel (structuring element) - 4x4
-        int[][] kernel = {
-                {1, 1, 1, 1},
-                {1, 1, 1, 1},
-                {1, 1, 1, 1},
-                {1, 1, 1, 1},
-        };
+        // Dilation kernel (structuring element)
+        int kernelSize = 10;
+        int[][] kernel = new int[kernelSize][kernelSize];
+        for(int i=0;i<kernel.length;i++){
+            for(int j=0;j<kernel[0].length;j++){
+                kernel[i][j]=1;
+            }
+        }
 
         // Iterate through each pixel
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // Check if current pixel needs dilation
                 boolean isDilationRequired = isDilationRequired(x, y, kernel);
-
                 // Set the pixel color
                 if (isDilationRequired) {
-                    dilatedImage.setRGB(x, y, Color.BLACK.getRGB());
-                } else {
-                    dilatedImage.setRGB(x, y, Color.WHITE.getRGB());
+                    dilatedImage[y][x] = 1;
                 }
             }
         }
@@ -64,11 +58,11 @@ public class DilateObject {
                         kernelX >= 0 && kernelX < kernelSize) {
 
                     // Check if neighborhood pixel is within image bounds
-                    if (newX >= 0 && newX < image.getWidth() &&
-                            newY >= 0 && newY < image.getHeight()) {
+                    if (newX >= 0 && newX < width &&
+                            newY >= 0 && newY < height) {
 
                         // If any neighboring pixel is black and kernel supports it
-                        if (new BinaryImageUtility(image).isDarkPixel(newX, newY) && kernel[kernelY][kernelX] == 1) {
+                        if (image[newY][newX] == 1 && kernel[kernelY][kernelX] == 1) {
                             return true;
                         }
                     }
