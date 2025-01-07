@@ -1,14 +1,13 @@
 package dino.util;
 
-import dino.image.processor.DilateObject;
+import dino.image.processor.DinoGameDetector;
+import dino.image.processor.object.DinoGameObjects;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class ObjectMatch {
@@ -21,20 +20,6 @@ public class ObjectMatch {
             this.y = y;
             this.score = score;
         }
-    }
-
-    public static int[][] imageToArray(BufferedImage img) {
-        int width = img.getWidth();
-        int height = img.getHeight();
-        int[][] result = new int[height][width];
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Color c = new Color(img.getRGB(x, y));
-                result[y][x] = (c.getRed() < 128) ? 1 : 0;
-            }
-        }
-        return result;
     }
 
     public static List<Match> findMatches(int[][] image, int[][] template, double threshold) {
@@ -76,14 +61,12 @@ public class ObjectMatch {
 
     public static void main(String[] args) throws IOException {
         long start = System.currentTimeMillis();
-        BufferedImage input = ImageIO.read(new File("samples/dilated_image_168.png"));
-        int[][] inputImageArray = new DilateObject(new RGBImageUtility(input).convertToAnArray()).dilate();
-        for (int y = 0; y < inputImageArray.length; y++) {
-            for (int x = 0; x < inputImageArray[0].length; x++) {
-                System.out.print(inputImageArray[y][x]);
-            }
-            System.out.println();
-        }
+        BufferedImage input = ImageIO.read(new File("samples/dilated_image_338.png"));
+        final int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
+        //final int[][] inputImageArray = new DilateObject(new RGBImageUtility(input).convertToAnArray()).dilate();
+        //final int[][] dilatedImageArray = new DilateObject(inputImageArray).dilate();
+
+        //printArray(inputImageArray);
         /*
         List<Match> matches = findMatches(inputImageArray, imageToArray(new RGBImageUtility(ImageIO.read(new File("dino.png"))).convertToBinary()), 0.9);
         for (Match m : matches) {
@@ -94,8 +77,24 @@ public class ObjectMatch {
         for (Match m : matches) {
             System.out.printf("Match found at (%d, %d) with score %.2f%n", m.x, m.y, m.score);
         }
-
          */
+        List<Match> matches = findMatches(inputImageArray, new RGBImageUtility(ImageIO.read(new File("game_over.png"))).convertToAnArray(), 0.8);
+        if(!matches.isEmpty()){
+            System.out.println("Game Over");
+        }
+        DinoGameObjects objects = DinoGameDetector.detectObjects(inputImageArray);
+        System.out.println("Detected " + objects.obstacles.size() + " obstacles");
+        objects.obstacles.forEach(o -> System.out.println(o.dinoPoint));
+        printArray(inputImageArray);
         System.out.println(System.currentTimeMillis() - start);
+    }
+
+    public static void printArray(int[][] inputImageArray) {
+        for (int y = 0; y < inputImageArray.length; y++) {
+            for (int x = 0; x < inputImageArray[0].length; x++) {
+                System.out.print(inputImageArray[y][x]);
+            }
+            System.out.println();
+        }
     }
 }

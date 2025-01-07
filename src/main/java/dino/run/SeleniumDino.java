@@ -49,13 +49,13 @@ public class SeleniumDino {
         while (true) {
             BufferedImage screenshot = takeScreenshot();
             BufferedImage imageWithoutDinoFloorAndSky = new ImageSegmentation(screenshot).removeDinoFloorAndSkyFromImage();
-            BufferedImage binaryImage = new RGBImageUtility(imageWithoutDinoFloorAndSky).convertToBinary();
+            //BufferedImage binaryImage = new RGBImageUtility(imageWithoutDinoFloorAndSky).convertToBinary();
             //BufferedImage dilatedImage = new DilateObject(binaryImage).dilate();
 
             //ObjectDetector detector = new ObjectDetector(dilatedImage);
             //List<GameObjectPosition> gameObjectPositions = detector.detect();
             List<GameObjectPosition> gameObjectPositions = Collections.EMPTY_LIST;
-            saveScreenshotForDebug(binaryImage, gameObjectPositions);
+            //saveScreenshotForDebug(binaryImage, gameObjectPositions);
             // If no objects are detected, skip the rest of the loop
             /*if (gameObjectPositions.isEmpty()) {
                 continue;
@@ -64,7 +64,7 @@ public class SeleniumDino {
                 break;
             }
             System.out.println("decision"+gameObjectPositions.get(0));*/
-            System.out.println(ContourDetector.detectGameElements(binaryImage));
+            //System.out.println(ContourDetector.detectGameElements(binaryImage));
         }
     }
 
