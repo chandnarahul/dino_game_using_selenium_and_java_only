@@ -1,5 +1,7 @@
 package dino.util;
 
+import dino.image.processor.DilateObject;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -120,13 +122,27 @@ public class SceneAnalyzer {
         long start = System.currentTimeMillis();
 
         BufferedImage input = ImageIO.read(new File("samples/dilated_image_52.png"));
+        start = printAndResetTime(start, "time to read file from disk");
+
         int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
+        //final int[][] inputImageArray = new DilateObject(new RGBImageUtility(input).convertToAnArray()).dilate();
+
+        start = printAndResetTime(start, "time to convert image to 2d array");
+
         List<Shape> shapes = analyzeScene(inputImageArray);
+        start = printAndResetTime(start, "time to find objects");
 
         for (Shape shape : shapes) {
             System.out.println(shape);
         }
-        System.out.println(System.currentTimeMillis() - start);
+        start = printAndResetTime(start, "time to print shapes");
         printArray(inputImageArray);
+
+        start = printAndResetTime(start, "time to print array");
+    }
+
+    public static long printAndResetTime(long start, String message) {
+        System.out.println(String.format("%s %d", message, (System.currentTimeMillis() - start)));
+        return System.currentTimeMillis();
     }
 }
