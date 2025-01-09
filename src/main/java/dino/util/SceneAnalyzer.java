@@ -180,7 +180,7 @@ public class SceneAnalyzer {
         try {
             for (int i = 0; i < 342; i++) {
                 long start = System.currentTimeMillis();
-                BufferedImage input = ImageIO.read(new File(String.format("samples/dilated_image_%d.png", i)));
+                BufferedImage input = ImageIO.read(new File(String.format("samples/binary_image_%d.png", i)));
                 start = printAndResetTime(start, "time to read file from disk");
 
                 int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();

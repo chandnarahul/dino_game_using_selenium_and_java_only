@@ -88,7 +88,7 @@ public class SeleniumDino {
     private void saveScreenshotForDebug(BufferedImage bufferedImage, List<GameObjectPosition> gameObjectPositions) {
         BinaryImageUtility imageUtility = new BinaryImageUtility(bufferedImage);
         imageUtility.addObjectDimensions(gameObjectPositions);
-        imageUtility.writeImageToFile("dilated_image_" + (screenshot_image_index++) + ".png");
+        imageUtility.writeImageToFile("binary_image_" + (screenshot_image_index++) + ".png");
     }
 
     private BufferedImage takeScreenshot() throws IOException {

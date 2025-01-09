@@ -61,7 +61,7 @@ public class ObjectMatch {
 
     public static void main(String[] args) throws IOException {
         long start = System.currentTimeMillis();
-        BufferedImage input = ImageIO.read(new File("samples/dilated_image_338.png"));
+        BufferedImage input = ImageIO.read(new File("samples/binary_image_338.png"));
         final int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
         //final int[][] inputImageArray = new DilateObject(new RGBImageUtility(input).convertToAnArray()).dilate();
         //final int[][] dilatedImageArray = new DilateObject(inputImageArray).dilate();
