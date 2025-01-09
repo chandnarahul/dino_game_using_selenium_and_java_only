@@ -14,6 +14,7 @@ public class RGBImageUtility {
         this.height = image.getHeight();
         this.pixels = image.getRGB(0, 0, width, height, null, 0, width);
     }
+
     public int[][] convertToAnArray() {
         int effectiveHeight = height;
         int[][] imageArray = new int[effectiveHeight][width];
@@ -34,9 +35,10 @@ public class RGBImageUtility {
 
         return imageArray;
     }
+
     public int[][] convertGameImageToAnArray() {
         int effectiveHeight = height - IGNORE_GROUND_PIXELS - IGNORE_TOP_PIXELS;
-        int[][] imageArray = new int[effectiveHeight][width-IGNORE_DINO_PIXELS];
+        int[][] imageArray = new int[effectiveHeight][width - IGNORE_DINO_PIXELS];
         boolean[] isDark = new boolean[pixels.length];
         for (int i = 0; i < pixels.length; i++) {
             isDark[i] = isRGBDarkPixel(pixels[i]);
@@ -46,7 +48,7 @@ public class RGBImageUtility {
             int targetY = y - IGNORE_TOP_PIXELS;
 
             for (int x = IGNORE_DINO_PIXELS; x < width; x++) {
-                if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= 5) {
+                if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= MINIMUM_NEIGHBOURS) {
                     int targetX = x - IGNORE_DINO_PIXELS;
                     imageArray[targetY][targetX] = 1;
                 }

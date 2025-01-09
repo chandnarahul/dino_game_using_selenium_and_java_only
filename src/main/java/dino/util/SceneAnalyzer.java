@@ -1,13 +1,14 @@
 package dino.util;
 
-import dino.image.processor.DilateObject;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static dino.util.ObjectMatch.printArray;
 
@@ -36,6 +37,62 @@ public class SceneAnalyzer {
 
     private static boolean[][] visited;
     private static int minX, maxX, minY, maxY;
+    private final BlockingQueue<int[][]> sceneQueue;
+    private final BlockingQueue<List<Shape>> resultQueue;
+    private volatile boolean isRunning;
+    private Thread processingThread;
+
+    public SceneAnalyzer() {
+        this.sceneQueue = new LinkedBlockingQueue<>();
+        this.resultQueue = new LinkedBlockingQueue<>();
+        this.isRunning = true;
+        startProcessingThread();
+    }
+
+    private void startProcessingThread() {
+        processingThread = new Thread(() -> {
+            while (isRunning) {
+                try {
+                    int[][] scene = sceneQueue.poll(10, TimeUnit.MILLISECONDS);
+                    if (scene != null) {
+                        List<Shape> shapes = analyzeScene(scene);
+                        resultQueue.put(shapes);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+        processingThread.start();
+    }
+
+    public void submitScene(int[][] scene) {
+        try {
+            sceneQueue.put(scene);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public List<Shape> getLatestResults() {
+        try {
+            return resultQueue.poll(10, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+    }
+
+    public void shutdown() {
+        isRunning = false;
+        processingThread.interrupt();
+        try {
+            processingThread.join(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
     public static List<Shape> analyzeScene(int[][] scene) {
         int rows = scene.length;
@@ -118,27 +175,35 @@ public class SceneAnalyzer {
     }
 
     public static void main(String[] args) throws IOException {
-        // Example usage
-        long start = System.currentTimeMillis();
+        SceneAnalyzer analyzer = new SceneAnalyzer();
+        long baseStart = System.currentTimeMillis();
+        try {
+            for (int i = 0; i < 342; i++) {
+                long start = System.currentTimeMillis();
+                BufferedImage input = ImageIO.read(new File(String.format("samples/dilated_image_%d.png", i)));
+                start = printAndResetTime(start, "time to read file from disk");
 
-        BufferedImage input = ImageIO.read(new File("samples/dilated_image_52.png"));
-        start = printAndResetTime(start, "time to read file from disk");
+                int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
+                //final int[][] inputImageArray = new DilateObject(new RGBImageUtility(input).convertToAnArray()).dilate();
 
-        int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
-        //final int[][] inputImageArray = new DilateObject(new RGBImageUtility(input).convertToAnArray()).dilate();
+                start = printAndResetTime(start, "time to convert image to 2d array");
 
-        start = printAndResetTime(start, "time to convert image to 2d array");
+                analyzer.submitScene(inputImageArray);
+                List<Shape> shapes = analyzer.getLatestResults();
+                start = printAndResetTime(start, "time to find objects");
 
-        List<Shape> shapes = analyzeScene(inputImageArray);
-        start = printAndResetTime(start, "time to find objects");
+                for (Shape shape : shapes) {
+                    System.out.println(shape);
+                }
+                start = printAndResetTime(start, "time to print shapes");
+                printArray(inputImageArray);
 
-        for (Shape shape : shapes) {
-            System.out.println(shape);
+                start = printAndResetTime(start, "time to print array");
+            }
+        }finally {
+            analyzer.shutdown();
+            printAndResetTime(baseStart, "Total time to run everything");
         }
-        start = printAndResetTime(start, "time to print shapes");
-        printArray(inputImageArray);
-
-        start = printAndResetTime(start, "time to print array");
     }
 
     public static long printAndResetTime(long start, String message) {
