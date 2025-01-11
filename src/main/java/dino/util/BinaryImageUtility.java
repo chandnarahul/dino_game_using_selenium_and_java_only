@@ -81,4 +81,13 @@ public class BinaryImageUtility {
         return (pixelByte & mask) == 0;  // If the bit is 0, it's black; if 1, it's white
     }
 
+    public static void printArray(int[][] inputImageArray) {
+        for (int y = 0; y < inputImageArray.length; y++) {
+            for (int x = 0; x < inputImageArray[0].length; x++) {
+                System.out.print(inputImageArray[y][x]);
+            }
+            System.out.println();
+        }
+    }
+
 }

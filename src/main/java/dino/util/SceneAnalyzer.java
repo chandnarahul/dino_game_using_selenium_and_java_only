@@ -10,7 +10,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static dino.util.ObjectMatch.printArray;
+import static dino.util.BinaryImageUtility.printArray;
 
 public class SceneAnalyzer {
     static class Shape {
@@ -178,14 +178,12 @@ public class SceneAnalyzer {
         SceneAnalyzer analyzer = new SceneAnalyzer();
         long baseStart = System.currentTimeMillis();
         try {
-            for (int i = 0; i < 342; i++) {
+            for (int i = 341; i < 342; i++) {
                 long start = System.currentTimeMillis();
                 BufferedImage input = ImageIO.read(new File(String.format("samples/binary_image_%d.png", i)));
                 start = printAndResetTime(start, "time to read file from disk");
 
                 int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
-                //final int[][] inputImageArray = new DilateObject(new RGBImageUtility(input).convertToAnArray()).dilate();
-
                 start = printAndResetTime(start, "time to convert image to 2d array");
 
                 analyzer.submitScene(inputImageArray);

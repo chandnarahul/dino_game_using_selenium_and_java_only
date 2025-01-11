@@ -1,12 +1,8 @@
 package dino.run;
 
-import dino.image.processor.ContourDetector;
-import dino.image.processor.DilateObject;
 import dino.image.processor.ImageSegmentation;
-import dino.image.processor.ObjectDetector;
 import dino.image.processor.object.GameObjectPosition;
 import dino.util.BinaryImageUtility;
-import dino.util.RGBImageUtility;
 import dino.util.SeleniumAction;
 import org.openqa.selenium.*;
 
@@ -14,7 +10,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static dino.Constants.MAX_COMMON_OBJECTS;

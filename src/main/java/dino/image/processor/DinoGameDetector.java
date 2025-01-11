@@ -1,6 +1,5 @@
 package dino.image.processor;
 
-import dino.Constants;
 import dino.image.processor.object.DinoGameObject;
 import dino.image.processor.object.DinoGameObjects;
 import dino.image.processor.object.DinoPoint;
