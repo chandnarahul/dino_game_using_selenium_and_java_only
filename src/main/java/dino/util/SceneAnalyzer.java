@@ -1,10 +1,13 @@
 package dino.util;
 
+import dino.Constants;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -16,19 +19,19 @@ public class SceneAnalyzer {
     static class Shape {
         int width;
         int height;
-        boolean isCactus; // True if it touches the ground
+        boolean isCloseToTheGround; // True if it touches the ground
         int xFromDino;    // Horizontal distance from Dino at X=0
 
-        Shape(int width, int height, boolean isCactus, int xFromDino) {
+        Shape(int width, int height, boolean isCloseToTheGround, int xFromDino) {
             this.width = width;
             this.height = height;
-            this.isCactus = isCactus;
+            this.isCloseToTheGround = isCloseToTheGround;
             this.xFromDino = xFromDino;
         }
 
         @Override
         public String toString() {
-            return (isCactus ? "Cactus" : "Bird") +
+            return (isCloseToTheGround ? "Close To The Ground" : "Above Ground") +
                     " - Width: " + width +
                     ", Height: " + height +
                     ", Distance from Dino: X=" + xFromDino;
@@ -58,7 +61,7 @@ public class SceneAnalyzer {
                         List<Shape> shapes = analyzeScene(scene);
                         resultQueue.put(shapes);
                     }
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     Thread.currentThread().interrupt();
                     break;
                 }
@@ -70,7 +73,7 @@ public class SceneAnalyzer {
     public void submitScene(int[][] scene) {
         try {
             sceneQueue.put(scene);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
     }
@@ -78,9 +81,9 @@ public class SceneAnalyzer {
     public List<Shape> getLatestResults() {
         try {
             return resultQueue.poll(10, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             Thread.currentThread().interrupt();
-            return null;
+            return Collections.EMPTY_LIST;
         }
     }
 
@@ -89,7 +92,7 @@ public class SceneAnalyzer {
         processingThread.interrupt();
         try {
             processingThread.join(1000);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
     }
@@ -178,7 +181,7 @@ public class SceneAnalyzer {
         SceneAnalyzer analyzer = new SceneAnalyzer();
         long baseStart = System.currentTimeMillis();
         try {
-            for (int i = 341; i < 342; i++) {
+            for (int i = 332; i < 333; i++) {
                 long start = System.currentTimeMillis();
                 BufferedImage input = ImageIO.read(new File(String.format("samples/binary_image_%d.png", i)));
                 start = printAndResetTime(start, "time to read file from disk");
@@ -188,16 +191,25 @@ public class SceneAnalyzer {
 
                 analyzer.submitScene(inputImageArray);
                 List<Shape> shapes = analyzer.getLatestResults();
-                start = printAndResetTime(start, "time to find objects");
 
+                start = printAndResetTime(start, "time to find objects");
+                if(shapes!=null)
                 for (Shape shape : shapes) {
                     System.out.println(shape);
                 }
+
                 start = printAndResetTime(start, "time to print shapes");
+
+                System.out.println(ObjectMatch.findMatches(inputImageArray, Constants.GAME_OVER_TEMPLATE, 0.9));
+
+                start = printAndResetTime(start, "time to find game over");
+
                 printArray(inputImageArray);
 
                 start = printAndResetTime(start, "time to print array");
             }
+        } catch (Exception e){
+            e.printStackTrace();
         }finally {
             analyzer.shutdown();
             printAndResetTime(baseStart, "Total time to run everything");
