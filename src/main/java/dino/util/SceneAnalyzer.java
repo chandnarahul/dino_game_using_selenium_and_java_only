@@ -1,39 +1,28 @@
 package dino.util;
 
+import dino.Constants;
+import dino.image.processor.object.Shape;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
+import static dino.Constants.MAX_NEIGHBOUR_PIXELS;
+import static dino.Constants.MINIMUM_DISTANCE_FROM_DINO;
+
 public class SceneAnalyzer {
-    static class Shape {
-        int width;
-        int height;
-        boolean isCloseToTheGround; // True if it touches the ground
-        int xFromDino;    // Horizontal distance from Dino at X=0
+    private boolean[][] visited;
+    private int minX, maxX, minY, maxY;
+    private final int[][] scene;
 
-        Shape(int width, int height, boolean isCloseToTheGround, int xFromDino) {
-            this.width = width;
-            this.height = height;
-            this.isCloseToTheGround = isCloseToTheGround;
-            this.xFromDino = xFromDino;
-        }
-
-        @Override
-        public String toString() {
-            return (isCloseToTheGround ? "Close To The Ground" : "Above Ground") +
-                    " - Width: " + width +
-                    ", Height: " + height +
-                    ", Distance from Dino: X=" + xFromDino;
-        }
+    public SceneAnalyzer(int[][] scene) {
+        this.scene = scene;
     }
 
-    private static boolean[][] visited;
-    private static int minX, maxX, minY, maxY;
-
-    public static List<Shape> analyzeScene(int[][] scene) {
+    public List<Shape> analyzeScene() {
         int rows = scene.length;
         int cols = scene[0].length;
         visited = new boolean[rows][cols];
@@ -61,23 +50,25 @@ public class SceneAnalyzer {
                     boolean touchesGround = maxY >= groundRow;
 
                     // Add the shape to the list
-                    shapes.add(new Shape(width, height, touchesGround, distanceFromDino));
+                    if (distanceFromDino > MINIMUM_DISTANCE_FROM_DINO) {
+                        shapes.add(new Shape(width, height, touchesGround, distanceFromDino));
+                    }
                 }
             }
         }
 
         // Sort shapes by distance from Dino
-        shapes.sort((a, b) -> Integer.compare(a.xFromDino, b.xFromDino));
+        shapes.sort(Comparator.comparingInt(Shape::getxFromDino));
         return shapes;
     }
 
-    private static void exploreShape(int[][] scene, int row, int col, int rows, int cols) {
+    private void exploreShape(int[][] scene, int row, int col, int rows, int cols) {
         if (row < 0 || row >= rows || col < 0 || col >= cols || visited[row][col]) {
             return;
         }
 
         // Include cells that are part of the shape or within 15 neighbors
-        if (scene[row][col] != 1 && !isWithinNeighboringRange(scene, row, col, rows, cols, 15)) {
+        if (scene[row][col] != 1 && !isWithinNeighboringRange(scene, row, col, rows, cols)) {
             return;
         }
 
@@ -99,12 +90,12 @@ public class SceneAnalyzer {
         }
     }
 
-    private static boolean isWithinNeighboringRange(int[][] scene, int row, int col, int rows, int cols, int range) {
-        for (int i = Math.max(0, row - range); i <= Math.min(rows - 1, row + range); i++) {
-            for (int j = Math.max(0, col - range); j <= Math.min(cols - 1, col + range); j++) {
+    private boolean isWithinNeighboringRange(int[][] scene, int row, int col, int rows, int cols) {
+        for (int i = Math.max(0, row - MAX_NEIGHBOUR_PIXELS); i <= Math.min(rows - 1, row + MAX_NEIGHBOUR_PIXELS); i++) {
+            for (int j = Math.max(0, col - MAX_NEIGHBOUR_PIXELS); j <= Math.min(cols - 1, col + MAX_NEIGHBOUR_PIXELS); j++) {
                 if (scene[i][j] == 1) {
                     // Check Euclidean distance
-                    if (Math.sqrt(Math.pow(row - i, 2) + Math.pow(col - j, 2)) <= range) {
+                    if (Math.sqrt(Math.pow(row - i, 2) + Math.pow(col - j, 2)) <= MAX_NEIGHBOUR_PIXELS) {
                         return true;
                     }
                 }
@@ -113,19 +104,18 @@ public class SceneAnalyzer {
         return false;
     }
 
-    public static void main(String[] args) throws IOException {
-        SceneAnalyzer analyzer = new SceneAnalyzer();
+    public static void main(String[] args) {
         long baseStart = System.currentTimeMillis();
         try {
-            for (int i = 333; i <= 333; i++) {
+            for (int i = 334; i <= 334; i++) {
                 long start = System.currentTimeMillis();
                 BufferedImage input = ImageIO.read(new File(String.format("samples/binary_image_%d.png", i)));
                 start = printAndResetTime(start, "time to read file from disk");
 
                 int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
                 start = printAndResetTime(start, "time to convert image to 2d array");
-
-                List<Shape> shapes = analyzer.analyzeScene(inputImageArray);
+                SceneAnalyzer analyzer = new SceneAnalyzer(inputImageArray);
+                List<Shape> shapes = analyzer.analyzeScene();
                 if (shapes.isEmpty()) {
                     System.out.println("No shapes detected or processing timed out");
                     continue;
@@ -135,8 +125,10 @@ public class SceneAnalyzer {
                 for (Shape shape : shapes) {
                     System.out.println(shape);
                 }
+                start = printAndResetTime(start, "time to print objects");
 
-                // ... (rest of the code remains the same)
+                System.out.println(ObjectMatch.findMatches(inputImageArray, Constants.GAME_OVER_TEMPLATE, 0.9));
+                printAndResetTime(start, "time to find game over");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -146,7 +138,7 @@ public class SceneAnalyzer {
     }
 
     public static long printAndResetTime(long start, String message) {
-        System.out.println(String.format("%s %d", message, (System.currentTimeMillis() - start)));
+        System.out.printf("%s %d%n", message, (System.currentTimeMillis() - start));
         return System.currentTimeMillis();
     }
 }
