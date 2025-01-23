@@ -1,14 +1,15 @@
 package dino.run;
 
-import dino.Constants;
-import dino.image.processor.object.Shape;
-import dino.util.*;
-import org.openqa.selenium.*;
+import dino.util.BinaryImageUtility;
+import dino.util.RGBImageUtility;
+import dino.util.SeleniumAction;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.List;
 
 public class SeleniumDino {
     private final WebDriver webDriver;
@@ -23,6 +24,7 @@ public class SeleniumDino {
     public long run() {
         try {
             startGame();
+            Thread.sleep(3000);
             gameLoop();  // Extracted game loop to its own method for clarity
         } catch (Exception e) {
             e.printStackTrace();
@@ -40,14 +42,26 @@ public class SeleniumDino {
         while (true) {
             BufferedImage screenshot = takeScreenshot();
             int[][] inputImageArray = new RGBImageUtility(screenshot).convertGameImageToAnArray();
-            List<Shape> shapes = new SceneAnalyzer(inputImageArray).analyzeScene();
-            if (!shapes.isEmpty()) {
-                System.out.println(shapes);
-                saveScreenshotForDebug(screenshot);
+            int minY = Integer.MAX_VALUE, maxY = 0, previousMinY = Integer.MAX_VALUE;
+            for (int y = inputImageArray.length - 1; y >= 0; y--) {
+                int x = 0;
+                for (; x < inputImageArray[0].length / 10; x++) {
+                    if (inputImageArray[y][x] == 1 && maxY == 0) {
+                        maxY = y;
+                    } else if (inputImageArray[y][x] == 1 && y < minY) {
+                        minY = y;
+                    }
+                }
+                if (minY == previousMinY && minY != Integer.MAX_VALUE) {
+                    while (inputImageArray[previousMinY][x] != 0) {
+                        x++;
+                    }
+                    System.out.println(String.format("minY %d maxY %d x %d", minY, maxY, x));
+                    break;
+                }
+                previousMinY = minY;
             }
-            if (ObjectMatch.findMatches(inputImageArray, Constants.GAME_OVER_TEMPLATE, 0.9)) {
-                break;
-            }
+            break;
         }
     }
 
@@ -57,10 +71,7 @@ public class SeleniumDino {
     }
 
     private BufferedImage takeScreenshot() throws IOException {
-        WebElement gameCanvas = webDriver.findElement(By.className("runner-canvas"));
-        Rectangle rect = gameCanvas.getRect();
-        BufferedImage fullImage = ImageIO.read(((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE));
-        return fullImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
+        return ImageIO.read(((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE));
     }
 
     private long calculateGameDuration() {

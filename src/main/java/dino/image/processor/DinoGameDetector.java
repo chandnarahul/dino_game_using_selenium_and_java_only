@@ -13,7 +13,7 @@ public class DinoGameDetector {// Ignore score at top
 
     public static DinoGameObjects detectObjects(int[][] screen) {
         // Constants
-        final int DINO_REGION_X = screen[0].length / IGNORE_PART_WHERE_DINO_IS; // Dino appears in first 1/20 of screen
+        final int DINO_REGION_X = screen[0].length; // Dino appears in first 1/20 of screen
 
         List<DinoGameObject> obstacles = new ArrayList<>();
 

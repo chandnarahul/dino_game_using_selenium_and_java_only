@@ -2,7 +2,7 @@ package dino.util;
 
 import java.awt.image.BufferedImage;
 
-import static dino.Constants.*;
+import static dino.Constants.MINIMUM_NEIGHBOURS;
 
 public class RGBImageUtility {
     private final int width;
@@ -37,19 +37,19 @@ public class RGBImageUtility {
     }
 
     public int[][] convertGameImageToAnArray() {
-        int effectiveHeight = height - IGNORE_GROUND_PIXELS - IGNORE_TOP_PIXELS;
-        int[][] imageArray = new int[effectiveHeight][width - IGNORE_DINO_PIXELS];
+        int effectiveHeight = height;
+        int[][] imageArray = new int[effectiveHeight][width];
         boolean[] isDark = new boolean[pixels.length];
         for (int i = 0; i < pixels.length; i++) {
             isDark[i] = isRGBDarkPixel(pixels[i]);
         }
-        for (int y = IGNORE_TOP_PIXELS; y < height - IGNORE_GROUND_PIXELS; y++) {
+        for (int y = 0; y < height; y++) {
             int baseIndex = y * width;
-            int targetY = y - IGNORE_TOP_PIXELS;
+            int targetY = y;
 
-            for (int x = IGNORE_DINO_PIXELS; x < width; x++) {
+            for (int x = 0; x < width; x++) {
                 if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= MINIMUM_NEIGHBOURS) {
-                    int targetX = x - IGNORE_DINO_PIXELS;
+                    int targetX = x;
                     imageArray[targetY][targetX] = 1;
                 }
             }
