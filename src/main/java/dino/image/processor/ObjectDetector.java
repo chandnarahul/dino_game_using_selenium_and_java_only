@@ -1,24 +1,17 @@
 package dino.image.processor;
 
-import dino.image.processor.object.GameObjectPosition;
 import dino.image.processor.object.DinoLocation;
 
-import java.util.ArrayList;
-import java.util.List;
+import static dino.Constants.SKIP_DINO_EYE_PIXELS;
 
 public class ObjectDetector {
     private final int[][] image;
-    private final int height;
-    private final int width;
-
     public ObjectDetector(int[][] image) {
         this.image = image;
-        this.height = image.length;
-        this.width = image[0].length;
     }
 
     public DinoLocation identifyDinoLocation() {
-        int minY = Integer.MAX_VALUE, maxY = 0, previousMinY = Integer.MAX_VALUE, dinoX = 0;
+        int minY = Integer.MAX_VALUE, maxY = 0, previousMinY = Integer.MAX_VALUE, dinoFaceWidth = 0;
         for (int y = image.length - 1; y >= 0; y--) {
             int x = 0;
             for (; x < image[0].length / 10; x++) {
@@ -29,68 +22,30 @@ public class ObjectDetector {
                 }
             }
             if (minY == previousMinY && minY != Integer.MAX_VALUE) {
-                while (image[previousMinY][x] != 0) {
-                    dinoX = x++;
-                }
-                System.out.println(String.format("minY %d maxY %d x %d", minY, maxY, x));
-                break;
+                dinoFaceWidth = x + getDinoFaceWidth(minY, x);
+                return new DinoLocation(minY, maxY, dinoFaceWidth);
             }
             previousMinY = minY;
         }
-        return new DinoLocation(maxY, minY, dinoX);
+        throw new RuntimeException("Unable to Identify Dino x and y values");
     }
 
-    public List<GameObjectPosition> detect() {
-        // 2D array to track visited pixels
-        boolean[][] visited = new boolean[width][height];
-        List<GameObjectPosition> blobs = new ArrayList<>();
-
-        // Scan through entire image
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                // If pixel is black and not visited, start blob detection
-                if (image[x][y] == 1 && !visited[x][y]) {
-                    // Flood fill to mark the entire nextBlob
-                    GameObjectPosition initialBlob = new GameObjectPosition(width, -1, height, -1);
-                    GameObjectPosition floodFillAndMeasureBlob = floodFillAndMeasure(x, y, visited, initialBlob);
-                    blobs.add(floodFillAndMeasureBlob);
-                }
+    private int getDinoFaceWidth(final int minY, final int minX) {
+        int maxX = 0;
+        int y = minY;
+        while ((image[y][minX] != 0 || image[y][minX + SKIP_DINO_EYE_PIXELS] != 0)) {
+            int count = 0;
+            int x = minX;
+            while (image[y][x] != 0) {
+                count++;
+                x++;
             }
-        }
-
-        return blobs;
-    }
-
-    private GameObjectPosition floodFillAndMeasure(int startX, int startY, boolean[][] visited, GameObjectPosition blob) {
-        // Use a simple queue for flood fill
-        List<int[]> queue = new ArrayList<>();
-        queue.add(new int[]{startX, startY});
-
-        GameObjectPosition tempBlob = blob;
-        while (!queue.isEmpty()) {
-            int[] current = queue.remove(0);
-            int x = current[0];
-            int y = current[1];
-
-            // Check bounds and if pixel is already visited
-            if (x < 0 || x >= width || y < 0 || y >= height ||
-                    visited[x][y] || !(image[x][y] == 1)) {
-                continue;
+            if (count > maxX) {
+                maxX = count;
             }
-
-            // Mark as visited
-            visited[x][y] = true;
-
-            // Update blob dimensions
-            tempBlob = new GameObjectPosition(Math.min(tempBlob.getLeftmostX(), x), Math.max(tempBlob.getRightmostX(), x), Math.min(tempBlob.getTopY(), y), Math.max(tempBlob.getBottomY(), y));
-
-            // Add neighboring pixels to queue
-            queue.add(new int[]{x + 1, y});
-            queue.add(new int[]{x - 1, y});
-            queue.add(new int[]{x, y + 1});
-            queue.add(new int[]{x, y - 1});
+            y++;
         }
-
-        return tempBlob;
+        return maxX;
     }
+
 }

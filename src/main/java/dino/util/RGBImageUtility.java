@@ -29,54 +29,57 @@ public class RGBImageUtility {
             int targetY = y;
 
             for (int x = 0; x < width; x++) {
-                if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= 5) {
+                if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= MINIMUM_NEIGHBOURS) {
                     imageArray[targetY][x] = 1;
                 }
             }
         }
-
         return imageArray;
     }
 
-    public int[][] convertGameImageToAnArray(DinoLocation dinoLocation) {
-        int effectiveHeight = height;
-        int[][] imageArray = new int[effectiveHeight][width - dinoLocation.getDinoPixels()];
-        boolean[] isDark = new boolean[pixels.length];
-        for (int i = 0; i < pixels.length; i++) {
-            isDark[i] = isRGBDarkPixel(pixels[i]);
-        }
-        for (int y = dinoLocation.getMinY(); y <= dinoLocation.getMaxY(); y++) {
-            int baseIndex = y * width;
-            for (int x = dinoLocation.getDinoPixels(); x < width; x++) {
-                if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= MINIMUM_NEIGHBOURS) {
-                    int targetX = x - dinoLocation.getDinoPixels();
-                    imageArray[y][targetX] = 1;
-                }
+    public int[][] processImage(DinoLocation dinoLocation, int[][] imageArray) {
+        int minY = dinoLocation.getMinY();
+        int maxY = dinoLocation.getMaxY();
+        int startX = dinoLocation.getDinoPixels();
+
+        // Calculate new dimensions
+        int newHeight = maxY - minY + 1;
+        int newWidth = width - startX;
+
+        // Create smaller array
+        int[][] subImageArray = new int[newHeight][newWidth];
+        // Copy values with adjusted coordinates
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = startX; x < width; x++) {
+                subImageArray[y - minY][x - startX] = imageArray[y][x];
             }
         }
 
-        return imageArray;
+        return subImageArray;
     }
 
     private int countDarkNeighbors(int x, int y, boolean[] isDark) {
         int count = 0;
         int baseIndex = y * width;
+
         if (x > 0) {
             if (y > 0 && isDark[baseIndex - width + x - 1]) count++;
             if (isDark[baseIndex + x - 1]) count++;
             if (y < height - 1 && isDark[baseIndex + width + x - 1]) count++;
         }
 
-        if (y > 0 && isDark[baseIndex - width + x]) count++;
-        if (y < height - 1 && isDark[baseIndex + width + x]) count++;
-
         if (x < width - 1) {
             if (y > 0 && isDark[baseIndex - width + x + 1]) count++;
             if (isDark[baseIndex + x + 1]) count++;
             if (y < height - 1 && isDark[baseIndex + width + x + 1]) count++;
         }
+
+        if (y > 0 && isDark[baseIndex - width + x]) count++;
+        if (y < height - 1 && isDark[baseIndex + width + x]) count++;
+
         return count;
     }
+
 
     public boolean isRGBDarkPixel(int rgb) {
         int r = (rgb >> 16) & 0xFF;

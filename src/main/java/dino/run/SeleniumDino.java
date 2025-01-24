@@ -2,8 +2,10 @@ package dino.run;
 
 import dino.image.processor.ObjectDetector;
 import dino.image.processor.object.DinoLocation;
+import dino.image.processor.object.Shape;
 import dino.util.BinaryImageUtility;
 import dino.util.RGBImageUtility;
+import dino.util.SceneAnalyzer;
 import dino.util.SeleniumAction;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -12,6 +14,7 @@ import org.openqa.selenium.WebDriver;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 
 public class SeleniumDino {
     private final WebDriver webDriver;
@@ -29,7 +32,7 @@ public class SeleniumDino {
             Thread.sleep(4000);
             RGBImageUtility rgbImageUtility = new RGBImageUtility(takeScreenshot());
             DinoLocation dinoLocation = new ObjectDetector(rgbImageUtility.convertToAnArray()).identifyDinoLocation();
-            gameLoop(dinoLocation);  // Extracted game loop to its own method for clarity
+            gameLoop(dinoLocation);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -44,9 +47,11 @@ public class SeleniumDino {
 
     private void gameLoop(DinoLocation dinoLocation) throws Exception {
         while (true) {
-            int[][] inputImageArray = new RGBImageUtility(takeScreenshot()).convertGameImageToAnArray(dinoLocation);
-            BinaryImageUtility.printArray(inputImageArray);
-            break;
+            RGBImageUtility rgbImageUtility = new RGBImageUtility(takeScreenshot());
+            int[][] imageArray = rgbImageUtility.convertToAnArray();
+            int[][] inputImageArray = rgbImageUtility.processImage(dinoLocation, imageArray);
+            List<Shape> shapes = new SceneAnalyzer(inputImageArray).analyzeScene();
+            shapes.forEach(s -> System.out.println(s));
         }
     }
 

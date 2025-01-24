@@ -1,11 +1,7 @@
 package dino.util;
 
-import dino.Constants;
 import dino.image.processor.object.Shape;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -23,6 +19,7 @@ public class SceneAnalyzer {
     }
 
     public List<Shape> analyzeScene() {
+        int id = 0;
         int rows = scene.length;
         int cols = scene[0].length;
         visited = new boolean[rows][cols];
@@ -40,18 +37,16 @@ public class SceneAnalyzer {
 
                     // Explore the shape
                     exploreShape(scene, i, j, rows, cols);
-
-                    // Calculate dimensions and distance
-                    int width = maxX - minX + 1;
-                    int height = maxY - minY + 1;
                     int distanceFromDino = minX;
-
-                    // Determine if the shape touches the ground
-                    boolean touchesGround = maxY >= groundRow;
 
                     // Add the shape to the list
                     if (distanceFromDino > MINIMUM_DISTANCE_FROM_DINO) {
-                        shapes.add(new Shape(width, height, touchesGround, distanceFromDino));
+                        // Calculate dimensions and distance
+                        int width = maxX - minX + 1;
+                        int height = maxY - minY + 1;
+                        // Determine if the shape touches the ground
+                        boolean touchesGround = maxY >= groundRow;
+                        shapes.add(new Shape(id++, width, height, touchesGround, distanceFromDino));
                     }
                 }
             }

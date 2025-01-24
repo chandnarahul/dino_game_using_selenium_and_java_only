@@ -12,8 +12,8 @@ public class GameImageProcessorTest {
     @Test(expected = RuntimeException.class)
     public void should_identify_that_game_is_over() throws IOException {
         ArrayList<BufferedImage> imageBuffers = new ArrayList<>();
-        for (int i = 0; i < Constants.MAX_COMMON_OBJECTS; i++) {
+        //for (int i = 0; i < Constants.MAX_COMMON_OBJECTS; i++) {
             //new GameImageProcessor(ImageIO.read(GameCanvasTest.class.getResourceAsStream("/game_over.png")), imageBuffers);
-        }
+        //}
     }
 }

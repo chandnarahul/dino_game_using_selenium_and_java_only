@@ -5,9 +5,9 @@ public class DinoLocation {
     private final int minY;
     private final int dinoPixels;
 
-    public DinoLocation(int maxY, int minY, int dinoPixels) {
-        this.maxY = maxY;
+    public DinoLocation(int minY,int maxY, int dinoPixels) {
         this.minY = minY;
+        this.maxY = maxY;
         this.dinoPixels = dinoPixels;
     }
 
@@ -21,5 +21,14 @@ public class DinoLocation {
 
     public int getDinoPixels() {
         return dinoPixels;
+    }
+
+    @Override
+    public String toString() {
+        return "DinoLocation{" +
+                "maxY=" + maxY +
+                ", minY=" + minY +
+                ", dinoPixels=" + dinoPixels +
+                '}';
     }
 }
