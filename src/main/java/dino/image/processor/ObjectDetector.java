@@ -1,6 +1,7 @@
 package dino.image.processor;
 
 import dino.image.processor.object.GameObjectPosition;
+import dino.image.processor.object.DinoLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,29 @@ public class ObjectDetector {
         this.image = image;
         this.height = image.length;
         this.width = image[0].length;
+    }
+
+    public DinoLocation identifyDinoLocation() {
+        int minY = Integer.MAX_VALUE, maxY = 0, previousMinY = Integer.MAX_VALUE, dinoX = 0;
+        for (int y = image.length - 1; y >= 0; y--) {
+            int x = 0;
+            for (; x < image[0].length / 10; x++) {
+                if (image[y][x] == 1 && maxY == 0) {
+                    maxY = y;
+                } else if (image[y][x] == 1 && y < minY) {
+                    minY = y;
+                }
+            }
+            if (minY == previousMinY && minY != Integer.MAX_VALUE) {
+                while (image[previousMinY][x] != 0) {
+                    dinoX = x++;
+                }
+                System.out.println(String.format("minY %d maxY %d x %d", minY, maxY, x));
+                break;
+            }
+            previousMinY = minY;
+        }
+        return new DinoLocation(maxY, minY, dinoX);
     }
 
     public List<GameObjectPosition> detect() {

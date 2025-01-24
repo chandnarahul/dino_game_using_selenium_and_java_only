@@ -1,5 +1,7 @@
 package dino.util;
 
+import dino.image.processor.object.DinoLocation;
+
 import java.awt.image.BufferedImage;
 
 import static dino.Constants.MINIMUM_NEIGHBOURS;
@@ -36,21 +38,19 @@ public class RGBImageUtility {
         return imageArray;
     }
 
-    public int[][] convertGameImageToAnArray() {
+    public int[][] convertGameImageToAnArray(DinoLocation dinoLocation) {
         int effectiveHeight = height;
-        int[][] imageArray = new int[effectiveHeight][width];
+        int[][] imageArray = new int[effectiveHeight][width - dinoLocation.getDinoPixels()];
         boolean[] isDark = new boolean[pixels.length];
         for (int i = 0; i < pixels.length; i++) {
             isDark[i] = isRGBDarkPixel(pixels[i]);
         }
-        for (int y = 0; y < height; y++) {
+        for (int y = dinoLocation.getMinY(); y <= dinoLocation.getMaxY(); y++) {
             int baseIndex = y * width;
-            int targetY = y;
-
-            for (int x = 0; x < width; x++) {
+            for (int x = dinoLocation.getDinoPixels(); x < width; x++) {
                 if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= MINIMUM_NEIGHBOURS) {
-                    int targetX = x;
-                    imageArray[targetY][targetX] = 1;
+                    int targetX = x - dinoLocation.getDinoPixels();
+                    imageArray[y][targetX] = 1;
                 }
             }
         }

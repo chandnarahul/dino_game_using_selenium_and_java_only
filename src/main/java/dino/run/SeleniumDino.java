@@ -1,5 +1,7 @@
 package dino.run;
 
+import dino.image.processor.ObjectDetector;
+import dino.image.processor.object.DinoLocation;
 import dino.util.BinaryImageUtility;
 import dino.util.RGBImageUtility;
 import dino.util.SeleniumAction;
@@ -24,8 +26,10 @@ public class SeleniumDino {
     public long run() {
         try {
             startGame();
-            Thread.sleep(3000);
-            gameLoop();  // Extracted game loop to its own method for clarity
+            Thread.sleep(4000);
+            RGBImageUtility rgbImageUtility = new RGBImageUtility(takeScreenshot());
+            DinoLocation dinoLocation = new ObjectDetector(rgbImageUtility.convertToAnArray()).identifyDinoLocation();
+            gameLoop(dinoLocation);  // Extracted game loop to its own method for clarity
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -38,29 +42,10 @@ public class SeleniumDino {
         SeleniumAction.jump(webDriver, 200);
     }
 
-    private void gameLoop() throws Exception {
+    private void gameLoop(DinoLocation dinoLocation) throws Exception {
         while (true) {
-            BufferedImage screenshot = takeScreenshot();
-            int[][] inputImageArray = new RGBImageUtility(screenshot).convertGameImageToAnArray();
-            int minY = Integer.MAX_VALUE, maxY = 0, previousMinY = Integer.MAX_VALUE;
-            for (int y = inputImageArray.length - 1; y >= 0; y--) {
-                int x = 0;
-                for (; x < inputImageArray[0].length / 10; x++) {
-                    if (inputImageArray[y][x] == 1 && maxY == 0) {
-                        maxY = y;
-                    } else if (inputImageArray[y][x] == 1 && y < minY) {
-                        minY = y;
-                    }
-                }
-                if (minY == previousMinY && minY != Integer.MAX_VALUE) {
-                    while (inputImageArray[previousMinY][x] != 0) {
-                        x++;
-                    }
-                    System.out.println(String.format("minY %d maxY %d x %d", minY, maxY, x));
-                    break;
-                }
-                previousMinY = minY;
-            }
+            int[][] inputImageArray = new RGBImageUtility(takeScreenshot()).convertGameImageToAnArray(dinoLocation);
+            BinaryImageUtility.printArray(inputImageArray);
             break;
         }
     }

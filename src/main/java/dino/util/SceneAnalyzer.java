@@ -104,41 +104,4 @@ public class SceneAnalyzer {
         return false;
     }
 
-    public static void main(String[] args) {
-        long baseStart = System.currentTimeMillis();
-        try {
-            for (int i = 334; i <= 334; i++) {
-                long start = System.currentTimeMillis();
-                BufferedImage input = ImageIO.read(new File(String.format("samples/binary_image_%d.png", i)));
-                start = printAndResetTime(start, "time to read file from disk");
-
-                int[][] inputImageArray = new RGBImageUtility(input).convertGameImageToAnArray();
-                start = printAndResetTime(start, "time to convert image to 2d array");
-                SceneAnalyzer analyzer = new SceneAnalyzer(inputImageArray);
-                List<Shape> shapes = analyzer.analyzeScene();
-                if (shapes.isEmpty()) {
-                    System.out.println("No shapes detected or processing timed out");
-                    continue;
-                }
-
-                start = printAndResetTime(start, "time to find objects");
-                for (Shape shape : shapes) {
-                    System.out.println(shape);
-                }
-                start = printAndResetTime(start, "time to print objects");
-
-                System.out.println(ObjectMatch.findMatches(inputImageArray, Constants.GAME_OVER_TEMPLATE, 0.9));
-                printAndResetTime(start, "time to find game over");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            printAndResetTime(baseStart, "Total time to run everything");
-        }
-    }
-
-    public static long printAndResetTime(long start, String message) {
-        System.out.printf("%s %d%n", message, (System.currentTimeMillis() - start));
-        return System.currentTimeMillis();
-    }
 }
