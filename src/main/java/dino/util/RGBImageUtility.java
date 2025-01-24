@@ -48,7 +48,7 @@ public class RGBImageUtility {
         // Copy values with adjusted coordinates
         for (int y = minY; y <= maxY; y++) {
             if (width - startX >= 0) {
-                System.arraycopy(imageArray[y], startX, subImageArray[y - minY], startX - startX, width - startX);
+                System.arraycopy(imageArray[y], startX, subImageArray[y - minY], 0, width - startX);
             }
         }
 
