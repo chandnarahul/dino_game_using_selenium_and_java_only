@@ -51,7 +51,7 @@ public class SeleniumDino {
             int[][] imageArray = rgbImageUtility.convertToAnArray();
             int[][] inputImageArray = rgbImageUtility.processImage(dinoLocation, imageArray);
             List<Shape> shapes = new SceneAnalyzer(inputImageArray).analyzeScene();
-            shapes.forEach(s -> System.out.println(s));
+            shapes.forEach(System.out::println);
         }
     }
 

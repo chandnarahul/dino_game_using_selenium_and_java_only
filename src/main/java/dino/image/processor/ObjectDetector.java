@@ -11,7 +11,7 @@ public class ObjectDetector {
     }
 
     public DinoLocation identifyDinoLocation() {
-        int minY = Integer.MAX_VALUE, maxY = 0, previousMinY = Integer.MAX_VALUE, dinoFaceWidth = 0;
+        int minY = Integer.MAX_VALUE, maxY = 0, previousMinY = Integer.MAX_VALUE;
         for (int y = image.length - 1; y >= 0; y--) {
             int x = 0;
             for (; x < image[0].length / 10; x++) {
@@ -22,7 +22,7 @@ public class ObjectDetector {
                 }
             }
             if (minY == previousMinY && minY != Integer.MAX_VALUE) {
-                dinoFaceWidth = x + getDinoFaceWidth(minY, x);
+                int dinoFaceWidth = x + getDinoFaceWidth(minY, x);
                 return new DinoLocation(minY, maxY, dinoFaceWidth);
             }
             previousMinY = minY;

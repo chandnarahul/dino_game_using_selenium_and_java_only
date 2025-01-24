@@ -18,19 +18,16 @@ public class RGBImageUtility {
     }
 
     public int[][] convertToAnArray() {
-        int effectiveHeight = height;
-        int[][] imageArray = new int[effectiveHeight][width];
+        int[][] imageArray = new int[height][width];
         boolean[] isDark = new boolean[pixels.length];
         for (int i = 0; i < pixels.length; i++) {
             isDark[i] = isRGBDarkPixel(pixels[i]);
         }
         for (int y = 0; y < height; y++) {
             int baseIndex = y * width;
-            int targetY = y;
-
             for (int x = 0; x < width; x++) {
                 if (isDark[baseIndex + x] && countDarkNeighbors(x, y, isDark) >= MINIMUM_NEIGHBOURS) {
-                    imageArray[targetY][x] = 1;
+                    imageArray[y][x] = 1;
                 }
             }
         }
@@ -50,8 +47,8 @@ public class RGBImageUtility {
         int[][] subImageArray = new int[newHeight][newWidth];
         // Copy values with adjusted coordinates
         for (int y = minY; y <= maxY; y++) {
-            for (int x = startX; x < width; x++) {
-                subImageArray[y - minY][x - startX] = imageArray[y][x];
+            if (width - startX >= 0) {
+                System.arraycopy(imageArray[y], startX, subImageArray[y - minY], startX - startX, width - startX);
             }
         }
 
