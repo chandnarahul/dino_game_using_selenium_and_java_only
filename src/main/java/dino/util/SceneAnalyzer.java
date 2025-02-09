@@ -3,16 +3,15 @@ package dino.util;
 import dino.image.processor.object.Shape;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import static dino.Constants.MAX_NEIGHBOUR_PIXELS;
 import static dino.Constants.MINIMUM_DISTANCE_FROM_DINO;
 
 public class SceneAnalyzer {
+    private final int[][] scene;
     private boolean[][] visited;
     private int minX, maxX, minY, maxY;
-    private final int[][] scene;
 
     public SceneAnalyzer(int[][] scene) {
         this.scene = scene;
@@ -53,7 +52,7 @@ public class SceneAnalyzer {
         }
 
         // Sort shapes by distance from Dino
-        shapes.sort(Comparator.comparingInt(Shape::getxFromDino));
+        shapes.sort((s1, s2) -> Integer.compare(s1.getxFromDino(), s2.getxFromDino()));
         return shapes;
     }
 
@@ -86,11 +85,12 @@ public class SceneAnalyzer {
     }
 
     private boolean isWithinNeighboringRange(int[][] scene, int row, int col, int rows, int cols) {
+        int maxDistanceSquared = MAX_NEIGHBOUR_PIXELS * MAX_NEIGHBOUR_PIXELS;
         for (int i = Math.max(0, row - MAX_NEIGHBOUR_PIXELS); i <= Math.min(rows - 1, row + MAX_NEIGHBOUR_PIXELS); i++) {
             for (int j = Math.max(0, col - MAX_NEIGHBOUR_PIXELS); j <= Math.min(cols - 1, col + MAX_NEIGHBOUR_PIXELS); j++) {
                 if (scene[i][j] == 1) {
-                    // Check Euclidean distance
-                    if (Math.sqrt(Math.pow(row - i, 2) + Math.pow(col - j, 2)) <= MAX_NEIGHBOUR_PIXELS) {
+                    int distanceSquared = (row - i) * (row - i) + (col - j) * (col - j);
+                    if (distanceSquared <= maxDistanceSquared) {
                         return true;
                     }
                 }
@@ -98,5 +98,4 @@ public class SceneAnalyzer {
         }
         return false;
     }
-
 }

@@ -15,7 +15,7 @@ public class RunChromeForManualExecution {
 
     public static void main(String[] args) throws InterruptedException {
         //WebDriver webDriver=chrome();
-        WebDriver webDriver=firefox();
+        WebDriver webDriver = firefox();
         Path sampleFile = Paths.get("dino_game.html");
         webDriver.get(sampleFile.toUri().toString());
         webDriver.manage().window().setSize(new Dimension(500, 450));

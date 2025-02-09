@@ -40,5 +40,9 @@ public class Shape {
     public int getxFromDino() {
         return xFromDino;
     }
+
+    public int getId() {
+        return id;
+    }
 }
 

@@ -14,12 +14,17 @@ import org.openqa.selenium.WebDriver;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SeleniumDino {
+    private static final int MAX_STATIONARY_ITERATIONS = 10;
     private final WebDriver webDriver;
     private final long gameStartTime;
     private int screenshot_image_index = 0;
+    private Map<Integer, Integer> previousPositions = new HashMap<>();
+    private int stationaryCount = 0;
 
     public SeleniumDino(WebDriver webDriver) {
         this.webDriver = webDriver;
@@ -52,7 +57,33 @@ public class SeleniumDino {
             int[][] inputImageArray = rgbImageUtility.processImage(dinoLocation, imageArray);
             List<Shape> shapes = new SceneAnalyzer(inputImageArray).analyzeScene();
             shapes.forEach(System.out::println);
+
+            if (isGameOver(shapes)) {
+                System.out.println("Game Over: Objects are not moving anymore.");
+                break;
+            }
         }
+    }
+
+    private boolean isGameOver(List<Shape> shapes) {
+        boolean allStationary = true;
+        for (Shape shape : shapes) {
+            int id = shape.getId();
+            int currentPosition = shape.getxFromDino();
+            if (previousPositions.containsKey(id)) {
+                if (previousPositions.get(id) != currentPosition) {
+                    allStationary = false;
+                    stationaryCount = 0;
+                }
+            }
+            previousPositions.put(id, currentPosition);
+        }
+        if (allStationary) {
+            stationaryCount++;
+        } else {
+            stationaryCount = 0;
+        }
+        return stationaryCount >= MAX_STATIONARY_ITERATIONS;
     }
 
     private void saveScreenshotForDebug(BufferedImage bufferedImage) {
